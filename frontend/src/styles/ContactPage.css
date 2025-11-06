@@ -1,0 +1,77 @@
+/* Header */
+.contact-header {
+  font-weight: 700;
+  background: linear-gradient(90deg, #4facfe, #00f2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.text-muted {
+  color: #f8f5f5 !important; /* slightly darker muted text */
+}
+
+/* Team Card */
+.team-card {
+  border: none;
+  border-radius: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #fff;
+  padding-top: 60px; /* keep card background white */
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.team-img-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: -40px;
+}
+
+.team-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #000; /* subtle black border */
+}
+
+.team-card .card-title,
+.team-card .card-subtitle,
+.team-card .card-text {
+  color: #000; /* black text */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Bug Card */
+.bug-card {
+  border-radius: 0.8rem;
+  background: #f7f7f7; /* keep previous card color */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bug-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.bug-btn {
+  background: linear-gradient(90deg, #4facfe, #0aa1a9); /* keep previous gradient button */
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+}
+
+.bug-btn:hover {
+  transform: scale(1.05);
+}
+
+.bug-card .form-label,
+.bug-card .form-control {
+  color: #000; /* text inside bug card black */
+}

@@ -1,0 +1,164 @@
+.resume-container {
+  background: #000000; /* pure black background */
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.resume-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #00ff88; /* bright green accent */
+  margin-bottom: 2rem;
+}
+
+.upload-box {
+  background: #1a1a1a;
+  border: 2px dashed #00ff88;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 0 auto 2rem;
+  width: 60%;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.upload-box:hover {
+  background: #111;
+}
+
+.upload-box input {
+  margin-bottom: 1rem;
+  color: #e0e0e0;
+}
+
+.upload-box button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: #00ff88;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.upload-box button:hover {
+  background: #00cc66;
+}
+
+.loading {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  color: #00ff88;
+}
+
+.results {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Animation keyframes */
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    text-shadow: 0 0 5px #00ff88, 0 0 10px #00ff88, 0 0 20px #00ff88;
+  }
+  50% {
+    text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px #00ff88;
+  }
+  100% {
+    text-shadow: 0 0 5px #00ff88, 0 0 10px #00ff88, 0 0 20px #00ff88;
+  }
+}
+
+/* Compact Score Card */
+.score-card {
+  background: #1a1a1a;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+  text-align: center;
+  width: fit-content;
+  min-width: 180px;
+
+  /* Smooth animation */
+  opacity: 0;
+  animation: fadeSlideUp 0.8s ease forwards;
+}
+
+.score-card h2 {
+  margin-bottom: 0.5rem;
+  color: #00ff88;
+  font-size: 1.2rem;
+}
+
+.score {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #f70909;
+
+  /* Pulse glow effect */
+  animation: pulseGlow 2s infinite ease-in-out solid rgb(159, 255, 33);
+}
+
+/* Feedback card comes below score */
+.feedback {
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+  text-align: left;
+  width: 80%;
+  max-width: 800px;
+
+  /* Smooth animation */
+  opacity: 0;
+  animation: fadeSlideUp 1s ease forwards;
+  animation-delay: 0.4s; /* appears after score card */
+}
+
+.feedback h3 {
+  margin-top: 1rem;
+  color: #00ff88;
+}
+
+.feedback ul {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.5rem;
+}
+.download-btn {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: #ff3a3a;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.download-btn:hover {
+  background: #b7b3b3;
+}
+.resume-subtitle {
+  font-size: 1rem;
+  color: #888;
+  margin-bottom: 1rem;
+}

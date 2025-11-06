@@ -1,0 +1,5 @@
+
+// technewscontroller (error handling)
+console.error("Gemini summarization failed:", err.message);
+
+“Built with ❤️ and Intelligence by the NextPath AI Team.”

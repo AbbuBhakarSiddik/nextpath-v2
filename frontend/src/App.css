@@ -1,0 +1,5 @@
+.card:hover {
+  transform: translateY(-10px);
+  border-color: #00ff7f !important;
+  box-shadow: 0 8px 25px rgba(0, 255, 127, 0.3);
+}

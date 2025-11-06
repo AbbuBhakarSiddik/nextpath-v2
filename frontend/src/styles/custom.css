@@ -1,0 +1,49 @@
+/* Bright green theme */
+.bright-green {
+  color: #00ff80 !important;
+}
+
+.border-bright-green {
+  border: 2px solid #00ff80 !important;
+}
+
+.btn-bright-green {
+  background-color: #00ff80;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-bright-green:hover {
+  background-color: #00e673;
+  color: #000;
+  box-shadow: 0 0 15px #00ff80;
+}
+
+/* Card hover effect */
+.card:hover {
+  transform: translateY(-5px);
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 0 15px rgba(0, 255, 128, 0.5);
+}
+/* Hover glow for feature cards */
+.feature-card {
+  transition: all 0.3s ease-in-out;
+}
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(0, 255, 128, 0.6);
+}
+/* Profile icon styling */
+.profile-icon {
+  color: #f7f4f4;                 /* white icon */
+  transition: transform .2s ease, color .2s ease, filter .2s ease;
+  cursor: pointer;
+}
+
+.profile-icon:hover {
+  color: #06ea0a;                 /* bright green on hover */
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px rgba(0, 255, 128, 0.7));
+}

@@ -1,0 +1,35 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #000000, #053666, #000000);
+  background-size: cover;
+  padding: 20px;
+}
+
+.register-card {
+  max-width: 420px;
+  width: 100%;
+  border-radius: 15px;
+  background: #ffffffcc;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.card-title {
+  font-weight: bold;
+  color: #ee2d2d;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #0d6efd, #0dcaf0);
+  border: none;
+  font-weight: 600;
+}
+
+.btn-success {
+  background: linear-gradient(90deg, #198754, #20c997);
+  border: none;
+  font-weight: 600;
+}
