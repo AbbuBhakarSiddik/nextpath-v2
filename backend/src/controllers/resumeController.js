@@ -1,95 +1,94 @@
 // backend/src/controllers/resumeController.js
-import mammoth from "mammoth";
-import textract from "textract";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import PDFParser from "pdf2json";
+import { readFileSync } from "fs";
+import path from "path";
+import mammoth from "mammoth"; // to extract text from .docx
+import dotenv from "dotenv";
+
+dotenv.config();
+
+console.log("GEMINI_API_KEY:", process.env.GEMINI_API_KEY ? "Loaded" : "Missing");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Helper: extract text from PDF using pdf2json
-const extractTextFromPDF = (buffer) => {
-  return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser();
-
-    pdfParser.on("pdfParser_dataError", (err) => reject(err));
-    pdfParser.on("pdfParser_dataReady", () => {
-      const rawText = pdfParser.getRawTextContent();
-      resolve(rawText || "");
-    });
-
-    pdfParser.parseBuffer(buffer);
-  });
-};
-
 export const analyzeResume = async (req, res) => {
   try {
-    let resumeText = "";
-
-    if (req.file) {
-      const { buffer: fileBuffer, mimetype: fileType, originalname } = req.file;
-
-      if (!fileBuffer || fileBuffer.length === 0)
-        return res.status(400).json({ error: "Uploaded file is empty" });
-
-      if (fileType === "application/pdf") {
-        resumeText = await extractTextFromPDF(fileBuffer);
-      } else if (
-        fileType ===
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-        originalname.endsWith(".docx")
-      ) {
-        const result = await mammoth.extractRawText({ buffer: fileBuffer });
-        resumeText = result.value || "";
-      } else if (fileType === "application/msword" || originalname.endsWith(".doc")) {
-        resumeText = await new Promise((resolve, reject) => {
-          textract.fromBufferWithMime(fileType, fileBuffer, (err, text) => {
-            if (err) reject(err);
-            else resolve(text || "");
-          });
-        });
-      } else {
-        return res.status(400).json({ error: "Unsupported file format" });
-      }
-    } else if (req.body.resumeText) {
-      resumeText = req.body.resumeText;
-    } else {
-      return res.status(400).json({ error: "No resume provided" });
+    if (!req.file) {
+      return res.status(400).json({ error: "No resume file uploaded" });
     }
 
-    if (!resumeText.trim())
-      return res.status(400).json({ error: "No content could be extracted from the resume" });
+    const file = req.file;
+    console.log(`📄 Uploaded file: ${file.originalname} | Type: ${file.mimetype}`);
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Only allow doc or docx
+    if (
+      ![
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ].includes(file.mimetype)
+    ) {
+      return res.status(400).json({ error: "Only .doc and .docx files are allowed" });
+    }
+
+    // Extract text from .docx using Mammoth
+    let extractedText = "";
+    if (file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      const result = await mammoth.extractRawText({ buffer: file.buffer });
+      extractedText = result.value;
+    } else {
+      // .doc files are legacy format – handle as plain text fallback
+      extractedText = file.buffer.toString("utf-8");
+    }
+
+    if (!extractedText || extractedText.trim().length < 50) {
+      return res.status(400).json({ error: "Resume text is too short or invalid." });
+    }
+
+    console.log(`✅ Extracted text length: ${extractedText.length}`);
+    console.log("🚀 Sending to Gemini...");
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
     const prompt = `
-      You are a professional career advisor.
-      Analyze the following resume and return ONLY valid JSON with this schema:
+      You are a professional resume analyst.
+      Analyze the following resume text and respond in JSON format like this:
       {
-        "score": number (0-100),
-        "strengths": [list of strings],
-        "weaknesses": [list of strings],
-        "improvements": [list of strings],
-        "skillsToLearn": [list of strings]
+        "score": <number between 0-100>,
+        "strengths": ["list of strengths"],
+        "weaknesses": ["list of weaknesses"],
+        "improvements": ["list of suggestions for improvement"],
+        "skillsToLearn": ["skills to learn or improve"]
       }
 
-      Resume:
-      ${resumeText}
+      Resume Text:
+      ${extractedText}
     `;
 
     const result = await model.generateContent(prompt);
-    let text = result.response.text().trim();
-    if (text.startsWith("```")) text = text.replace(/```(json)?/g, "").trim();
+    const responseText = result.response.text();
 
-    let jsonResponse;
+    console.log("✅ Gemini Response:", responseText);
+
+    // Parse Gemini JSON response safely
+    let parsed;
     try {
-      jsonResponse = JSON.parse(text);
+      parsed = JSON.parse(responseText);
     } catch (e) {
-      console.error("❌ Parsing failed. AI Response:", text);
-      return res.status(500).json({ error: "Invalid AI response format" });
+      console.warn("⚠️ Gemini did not return pure JSON. Cleaning response...");
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
     }
 
-    res.json(jsonResponse);
+    if (!parsed) {
+      throw new Error("Failed to parse Gemini response");
+    }
+
+    res.json(parsed);
   } catch (error) {
-    console.error("❌ Resume analysis failed:", error);
-    res.status(500).json({ error: "Resume analysis failed" });
+    console.error("❌ Error in analyzeResume:", error);
+    res.status(500).json({
+      error: "Resume analysis failed. Please try again later.",
+      details: error.message,
+    });
   }
 };

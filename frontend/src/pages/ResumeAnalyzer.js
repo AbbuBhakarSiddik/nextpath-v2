@@ -1,7 +1,6 @@
-// frontend/src/pages/ResumeAnalyzer.js
 import React, { useState } from "react";
 import Results from "../components/Results";
-import "../styles/ResumeAnalyzer.css"; // make sure this points to your CSS file
+import "../styles/ResumeAnalyzer.css";
 
 export default function ResumeAnalyzer() {
   const [file, setFile] = useState(null);
@@ -48,7 +47,7 @@ export default function ResumeAnalyzer() {
   return (
     <div className="resume-container">
       <h1 className="resume-title">📄 Resume Analyzer</h1>
-      <h2 className="resume-subtitle">upload .doc .docx files only</h2>
+      <h2 className="resume-subtitle">Upload .pdf, .doc, or .docx files only</h2>
 
       <div className="upload-box">
         <input
@@ -56,7 +55,11 @@ export default function ResumeAnalyzer() {
           accept=".pdf,.doc,.docx"
           onChange={handleFileChange}
         />
-        <p>{file ? `✅ Uploaded: ${file.name}` : "Drag & drop or click to upload resume"}</p>
+        <p>
+          {file
+            ? `✅ Uploaded: ${file.name}`
+            : "Drag & drop or click to upload resume"}
+        </p>
         <button onClick={handleAnalyze} disabled={loading}>
           {loading ? "Analyzing..." : "Analyze Resume"}
         </button>
