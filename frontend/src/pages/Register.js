@@ -34,6 +34,10 @@ function Register() {
       );
     }
   };
+  <div className="alert alert-warning text-center mt-3" style={{ fontSize: "0.9rem" }}>
+  ⏳ First time registration may take <strong>20–30 seconds</strong> because our backend
+  wakes up from idle. Please wait ✅
+  </div>
 
   return (
     <div className="register-container">
