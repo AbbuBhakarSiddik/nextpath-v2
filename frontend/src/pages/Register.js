@@ -34,16 +34,16 @@ function Register() {
       );
     }
   };
-  <div className="alert alert-warning text-center mt-3" style={{ fontSize: "0.9rem" }}>
-  ⏳ First time registration may take <strong>20–30 seconds</strong> because our backend
-  wakes up from idle. Please wait ✅
-  </div>
 
   return (
     <div className="register-container">
       <div className="card register-card shadow-lg">
         <div className="card-body">
           <h3 className="card-title text-center mb-4">Registration</h3>
+  <div className="alert alert-warning text-center mt-3" style={{ fontSize: "0.9rem" }}>
+  ⏳ First time registration may take <strong>20–30 seconds</strong> because our backend
+  wakes up from idle. Please wait ✅
+  </div>
 
           {/* Gmail Registration */}
           <input
