@@ -1,6 +1,7 @@
 // src/pages/Chat.js
 import React, { useState, useRef, useEffect } from "react";
 import "../styles/Chat.css";
+import api from "../api";
 
 export default function Chat() {
   const [input, setInput] = useState("");
@@ -12,7 +13,6 @@ export default function Chat() {
   const abortController = useRef(null);
   const chatBodyRef = useRef(null);
 
-  // Auto-scroll when new message
   useEffect(() => {
     chatBodyRef.current?.scrollTo(0, chatBodyRef.current.scrollHeight);
   }, [messages, loading, showTyping]);
@@ -21,7 +21,6 @@ export default function Chat() {
     const text = input.trim();
     if (!text) return;
 
-    // Add user message
     setMessages((m) => [...m, { role: "user", content: text }]);
     setInput("");
     setLoading(true);
@@ -30,54 +29,23 @@ export default function Chat() {
     try {
       abortController.current = new AbortController();
 
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
-        signal: abortController.current.signal,
-      });
+      // ✅ Use central api instance
+      const res = await api.post(
+        "/chat",
+        { message: text },
+        { signal: abortController.current.signal }
+      );
 
-      if (!res.body) throw new Error("No response body");
+      const reply = res?.data?.reply || "⚠️ No reply received.";
 
-      const reader = res.body.getReader();
-      let buffer = ""; // collect stream chunks
-
-      // Add empty assistant message first
-      setMessages((m) => [...m, { role: "assistant", content: "" }]);
-
-      const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const result = await reader.read();
-        done = result.done;
-
-        if (result.value) {
-          buffer += decoder.decode(result.value, { stream: true });
-
-          // Try to parse valid JSON safely
-          try {
-            const parsed = JSON.parse(buffer);
-            const currentReply = parsed.reply;
-
-            // Update last assistant message safely
-            setMessages((m) => {
-              const lastMsg = m[m.length - 1];
-              if (lastMsg.role === "assistant") {
-                return [...m.slice(0, -1), { ...lastMsg, content: currentReply }];
-              }
-              return [...m, { role: "assistant", content: currentReply }];
-            });
-          } catch {
-            // Ignore until buffer becomes a full JSON
-          }
-        }
-      }
+      setMessages((m) => [...m, { role: "assistant", content: reply }]);
     } catch (err) {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", content: "❌ Network error." },
-      ]);
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "❌ Network error.";
+
+      setMessages((m) => [...m, { role: "assistant", content: msg }]);
     } finally {
       setLoading(false);
       setShowTyping(false);
