@@ -47,7 +47,7 @@ export default function ResumeAnalyzer() {
   return (
     <div className="resume-container">
       <h1 className="resume-title">📄 Resume Analyzer</h1>
-      <h2 className="resume-subtitle">Upload .pdf, .doc, or .docx files only</h2>
+      <h2 className="resume-subtitle">Upload .doc, or .docx files only</h2>
 
       <div className="upload-box">
         <input

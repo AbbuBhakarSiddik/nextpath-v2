@@ -13,31 +13,41 @@ export default function AIQTester() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // ✅ Deployment ready base URL
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
   // 🔹 Fetch question from backend
-    const fetchQuestion = async () => {
+  const fetchQuestion = async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const res = await fetch("http://localhost:5000/api/iq/generate-question", {
+      const res = await fetch(`${API_URL}/api/iq/generate-question`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category, difficulty }),
       });
 
-      if (!res.ok) throw new Error("Failed to fetch question");
-
+      // ✅ Read response always
       const data = await res.json();
+
+      // ✅ Handle backend errors properly
+      if (!res.ok) {
+        throw new Error(data?.message || "Failed to fetch question");
+      }
+
       console.log("Fetched question:", data);
 
-      // Ensure structure
+      // ✅ Ensure structure
       if (!data || !data.question || !data.options) {
-        throw new Error("Invalid question data");
+        throw new Error("Invalid question data received");
       }
 
       setQuestion(data);
     } catch (err) {
       console.error("Error fetching question:", err);
       setError(err.message);
+      setQuestion(null);
     } finally {
       setLoading(false);
     }
@@ -47,6 +57,11 @@ export default function AIQTester() {
   const startQuiz = async () => {
     setScore(0);
     setTotal(0);
+    setSelectedAnswer(null);
+    setFeedback(null);
+    setQuestion(null);
+    setError(null);
+
     setStage("question");
     await fetchQuestion();
   };
@@ -54,14 +69,15 @@ export default function AIQTester() {
   // 🔹 Handle answer
   const handleAnswer = (index) => {
     if (!question) return;
+
     setSelectedAnswer(index);
     setTotal((prev) => prev + 1);
 
     if (index === question.correct_index) {
       setScore((prev) => prev + 1);
-      setFeedback("✅ Correct! " + question.explanation);
+      setFeedback("✅ Correct! " + (question.explanation || ""));
     } else {
-      setFeedback("❌ Wrong! " + question.explanation);
+      setFeedback("❌ Wrong! " + (question.explanation || ""));
     }
   };
 
@@ -121,12 +137,36 @@ export default function AIQTester() {
         {/* Question screen */}
         {stage === "question" && (
           <div>
-            {loading && <p>Loading question...</p>}
-            {error && <div className="alert alert-danger">{error}</div>}
+            {loading && (
+              <div className="alert alert-info">
+                ⏳ AI is generating a question... please wait (may take 10–20s)
+              </div>
+            )}
+
+            {error && (
+              <div className="alert alert-danger d-flex justify-content-between align-items-center">
+                <span>{error}</span>
+                <button
+                  className="btn btn-sm btn-dark"
+                  onClick={fetchQuestion}
+                  disabled={loading}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
             {question && (
               <>
+                {/* ✅ Shows which model worked */}
+                {question?.model && (
+                  <div className="alert alert-secondary p-2">
+                    ✅ Generated using: <strong>{question.model}</strong>
+                  </div>
+                )}
+
                 <h5 className="mb-3">{question.question}</h5>
+
                 <ul className="list-group mb-3">
                   {question.options.map((opt, index) => (
                     <li
@@ -139,9 +179,11 @@ export default function AIQTester() {
                           : ""
                       }`}
                       onClick={() =>
-                        selectedAnswer === null && handleAnswer(index)
+                        selectedAnswer === null && !loading && handleAnswer(index)
                       }
-                      style={{ cursor: "pointer" }}
+                      style={{
+                        cursor: selectedAnswer === null ? "pointer" : "not-allowed",
+                      }}
                     >
                       {opt}
                     </li>
@@ -158,6 +200,7 @@ export default function AIQTester() {
                   >
                     Next Question
                   </button>
+
                   <button
                     className="btn btn-success"
                     onClick={finishQuiz}
@@ -170,6 +213,16 @@ export default function AIQTester() {
             )}
           </div>
         )}
+        {error && (
+  <div className="alert alert-warning text-center">
+    <h5>🚧 IQ Tester Under Update</h5>
+    <p className="mb-1">
+      Our AI service reached today's free usage limit.
+    </p>
+    <small>Try again after some time ✅</small>
+  </div>
+)}
+
 
         {/* Result screen */}
         {stage === "result" && (
