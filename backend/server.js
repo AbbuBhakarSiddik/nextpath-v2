@@ -21,11 +21,13 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type"],
+    origin: ["https://nextpath-v2.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE","OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    redentials: true,
   })
 );
+app.options("*", cors());
 app.use(express.json({ limit: "10mb" })); // for resume uploads
 app.use(morgan("dev"));
 
