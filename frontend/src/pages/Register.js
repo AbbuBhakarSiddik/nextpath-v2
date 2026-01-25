@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
 import "../styles/Register.css";
+import api from "../api";
 
 function Register() {
   const [gmail, setGmail] = useState("");
@@ -9,19 +9,19 @@ function Register() {
 
   const handleRegister = async () => {
     try {
-      await axios.post("http://localhost:5000/api/register", { gmail });
+      await api.post("/register", { gmail });
       setMessage("Gmail registered successfully ✅");
     } catch (error) {
-      setMessage("Error: Gmail already exists ❌");
+      setMessage(
+        error?.response?.data?.message || "Error: Gmail already exists ❌"
+      );
     }
   };
 
   const handleVerify = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/verify", {
-        gmail:verifyGmail
-      }
-    );
+      const res = await api.post("/verify", { gmail: verifyGmail });
+
       if (res.data.success) {
         setMessage("Verified ✅ Redirecting to Home...");
         window.location.href = "/Home"; // change route name if needed
@@ -29,7 +29,9 @@ function Register() {
         setMessage("Gmail not found ❌");
       }
     } catch (error) {
-      setMessage("Error verifying Gmail ❌");
+      setMessage(
+        error?.response?.data?.message || "Error verifying Gmail ❌"
+      );
     }
   };
 
@@ -37,7 +39,7 @@ function Register() {
     <div className="register-container">
       <div className="card register-card shadow-lg">
         <div className="card-body">
-          <h3 className="card-title text-center mb-4"> Registration</h3>
+          <h3 className="card-title text-center mb-4">Registration</h3>
 
           {/* Gmail Registration */}
           <input
@@ -47,7 +49,10 @@ function Register() {
             value={gmail}
             onChange={(e) => setGmail(e.target.value)}
           />
-          <button className="btn btn-primary w-100 mb-4" onClick={handleRegister}>
+          <button
+            className="btn btn-primary w-100 mb-4"
+            onClick={handleRegister}
+          >
             Register
           </button>
 
