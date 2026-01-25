@@ -1,8 +1,8 @@
 // backend/server.js
 import dotenv from "dotenv";
 dotenv.config();
-import express from "express";
 import mongoose from "mongoose";
+import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 
@@ -54,10 +54,10 @@ app.use((err, _req, res, _next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI;
+
 
 mongoose
-  .connect(MONGODB_URI, { autoIndex: true })
+  .connect(process.env.MONGO_URI, { autoIndex: true })
   .then(() => {
     console.log("✅ MongoDB connected");
     app.listen(PORT, () =>
@@ -68,3 +68,4 @@ mongoose
     console.error("❌ MongoDB connection failed:", err.message);
     process.exit(1);
   });
+console.log("Loaded env:", process.env.MONGO_URI);
