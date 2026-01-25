@@ -7,7 +7,7 @@ function Intro() {
     <div className="bg-dark text-light d-flex flex-column min-vh-100">
       {/* Hero / Intro Section */}
       <section className="text-center py-5 bg-black shadow-sm">
-        <h1 className="fw-bold display-4 bright-green">NextPath.ai 🚀</h1>
+        <h1 className="fw-bold display-4 bright-green">NextPath.ai ABBU🚀</h1>
         <p className="lead text-white-50 mt-3">
           Your AI-powered career and learning companion.
         </p>
