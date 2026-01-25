@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import api from "../api";
 
 function JobAdvisor() {
   const [role, setRole] = useState("");
@@ -7,23 +8,33 @@ function JobAdvisor() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [downloadUrl, setDownloadUrl] = useState(null);
+  const [error, setError] = useState(null);
+
+  // ✅ base URL for downloading file
+  const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch("http://localhost:5000/api/jobadvisor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, skills }),
-      });
+      const res = await api.post("/jobadvisor", { role, skills });
 
-      const data = await response.json();
-      setResults(data.data); // backend sends { data, downloadUrl }
-      setDownloadUrl(data.downloadUrl);
+      // backend sends { data, downloadUrl }
+      setResults(res.data?.data || null);
+      setDownloadUrl(res.data?.downloadUrl || null);
     } catch (err) {
       console.error("Error fetching results:", err);
+
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "❌ Failed to fetch job roadmap. Try again.";
+
+      setError(msg);
+      setResults(null);
+      setDownloadUrl(null);
     } finally {
       setLoading(false);
     }
@@ -33,8 +44,9 @@ function JobAdvisor() {
     <div className="container mt-5">
       <div className="card shadow-lg p-4 rounded">
         <h2 className="text-center text-primary mb-4">
-           👔 AI Job Requirement Advisor
+          👔 AI Job Requirement Advisor
         </h2>
+
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className="form-label fw-bold">Desired Job Role</label>
@@ -63,6 +75,8 @@ function JobAdvisor() {
             {loading ? "Analyzing..." : "Get Roadmap"}
           </button>
         </form>
+
+        {error && <div className="alert alert-danger mt-3">{error}</div>}
       </div>
 
       {/* Results Section */}
@@ -132,7 +146,7 @@ function JobAdvisor() {
           {downloadUrl && (
             <div className="text-center mt-4">
               <a
-                href={`http://localhost:5000${downloadUrl}`}
+                href={`${BASE_URL}${downloadUrl}`}
                 className="btn btn-success"
                 download
               >
@@ -145,4 +159,5 @@ function JobAdvisor() {
     </div>
   );
 }
+
 export default JobAdvisor;
