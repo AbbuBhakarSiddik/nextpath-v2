@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import api from "../api"; // ✅ use central api instance
 
 export default function AIQTester() {
   const [stage, setStage] = useState("menu"); // menu | question | result
@@ -13,32 +14,18 @@ export default function AIQTester() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ Deployment ready base URL
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
-
   // 🔹 Fetch question from backend
   const fetchQuestion = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/iq/generate-question`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category, difficulty }),
-      });
-
-      // ✅ Read response always
-      const data = await res.json();
-
-      // ✅ Handle backend errors properly
-      if (!res.ok) {
-        throw new Error(data?.message || "Failed to fetch question");
-      }
+      const res = await api.post("/iq/generate-question", { category, difficulty });
+      const data = res.data;
 
       console.log("Fetched question:", data);
 
-      // ✅ Ensure structure
+      // Ensure structure
       if (!data || !data.question || !data.options) {
         throw new Error("Invalid question data received");
       }
@@ -46,7 +33,14 @@ export default function AIQTester() {
       setQuestion(data);
     } catch (err) {
       console.error("Error fetching question:", err);
-      setError(err.message);
+
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to fetch question";
+
+      setError(message);
       setQuestion(null);
     } finally {
       setLoading(false);
@@ -158,7 +152,7 @@ export default function AIQTester() {
 
             {question && (
               <>
-                {/* ✅ Shows which model worked */}
+                {/* Shows which model worked */}
                 {question?.model && (
                   <div className="alert alert-secondary p-2">
                     ✅ Generated using: <strong>{question.model}</strong>
@@ -213,16 +207,6 @@ export default function AIQTester() {
             )}
           </div>
         )}
-        {error && (
-  <div className="alert alert-warning text-center">
-    <h5>🚧 IQ Tester Under Update</h5>
-    <p className="mb-1">
-      Our AI service reached today's free usage limit.
-    </p>
-    <small>Try again after some time ✅</small>
-  </div>
-)}
-
 
         {/* Result screen */}
         {stage === "result" && (
