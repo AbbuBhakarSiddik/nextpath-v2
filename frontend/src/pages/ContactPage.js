@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
-import axios from "axios";
-import "../styles/ContactPage.css"; // Custom CSS for styling
+import "../styles/ContactPage.css";
+import api from "../api";
 
 const ContactPage = () => {
   const [bugData, setBugData] = useState({ email: "", bug: "" });
@@ -20,13 +20,13 @@ const ContactPage = () => {
       email: "nextpathai@gmail.com",
       image: "/assets/.jpg",
     },
-     {
+    {
       name: "Arbaz Pasha",
       profession: "presentation/reports",
       email: "nextpathai@gmail.com",
       image: "/assets/.jpg",
     },
-     {
+    {
       name: "Pruthvi H D",
       profession: "Reserve designer",
       email: "nextpathai@gmail.com",
@@ -34,15 +34,17 @@ const ContactPage = () => {
     },
   ];
 
-  const handleChange = (e) => setBugData({ ...bugData, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setBugData({ ...bugData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/bugreport", bugData);
+      await api.post("/bugreport", bugData);
       setStatus("success");
       setBugData({ email: "", bug: "" });
     } catch (error) {
+      console.error("Bug report failed:", error);
       setStatus("error");
     }
   };
@@ -62,11 +64,17 @@ const ContactPage = () => {
           <Col md={6} lg={4} key={index} className="mb-4">
             <Card className="team-card text-center shadow-sm h-100">
               <div className="team-img-wrapper">
-                <Card.Img variant="top" src={member.image} className="team-img" />
+                <Card.Img
+                  variant="top"
+                  src={member.image}
+                  className="team-img"
+                />
               </div>
               <Card.Body>
                 <Card.Title>{member.name}</Card.Title>
-                <Card.Subtitle className="mb-2">{member.profession}</Card.Subtitle>
+                <Card.Subtitle className="mb-2">
+                  {member.profession}
+                </Card.Subtitle>
                 <Card.Text>{member.email}</Card.Text>
               </Card.Body>
             </Card>
@@ -79,8 +87,16 @@ const ContactPage = () => {
         <Col md={8} className="mx-auto">
           <Card className="bug-card p-4 shadow-sm">
             <h4 className="mb-3">Report a Bug</h4>
-            {status === "success" && <Alert variant="success">Bug has been reported successfully!</Alert>}
-            {status === "error" && <Alert variant="danger">Something went wrong. Try again.</Alert>}
+
+            {status === "success" && (
+              <Alert variant="success">
+                Bug has been reported successfully!
+              </Alert>
+            )}
+
+            {status === "error" && (
+              <Alert variant="danger">Something went wrong. Try again.</Alert>
+            )}
 
             <Form onSubmit={handleSubmit}>
               <Form.Group className="mb-3">
