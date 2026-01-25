@@ -54,10 +54,10 @@ app.use((err, _req, res, _next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI;
+
 
 mongoose
-  .connect(MONGODB_URI, { autoIndex: true })
+  .connect(process.env.MONGO_URI, { autoIndex: true })
   .then(() => {
     console.log("✅ MongoDB connected");
     app.listen(PORT, () =>
