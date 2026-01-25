@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Results from "../components/Results";
 import "../styles/ResumeAnalyzer.css";
+import api from "../api";
 
 export default function ResumeAnalyzer() {
   const [file, setFile] = useState(null);
@@ -24,21 +25,24 @@ export default function ResumeAnalyzer() {
       const formData = new FormData();
       formData.append("resume", file);
 
-      const res = await fetch("http://localhost:5000/api/resume/analyze", {
-        method: "POST",
-        body: formData,
+      // ✅ Use api.js (axios)
+      const res = await api.post("/resume/analyze", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData?.error || "Failed to analyze resume");
-      }
-
-      const data = await res.json();
-      setResults(data);
+      setResults(res.data);
     } catch (err) {
       console.error("Error analyzing resume:", err);
-      setError(`❌ ${err.message}`);
+
+      const msg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to analyze resume";
+
+      setError(`❌ ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -52,7 +56,7 @@ export default function ResumeAnalyzer() {
       <div className="upload-box">
         <input
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept=".doc,.docx"
           onChange={handleFileChange}
         />
         <p>
@@ -60,6 +64,7 @@ export default function ResumeAnalyzer() {
             ? `✅ Uploaded: ${file.name}`
             : "Drag & drop or click to upload resume"}
         </p>
+
         <button onClick={handleAnalyze} disabled={loading}>
           {loading ? "Analyzing..." : "Analyze Resume"}
         </button>
