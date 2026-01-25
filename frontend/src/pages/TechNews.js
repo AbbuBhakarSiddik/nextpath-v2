@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Card, Button, Form, Container, Row, Col, Spinner } from "react-bootstrap";
+import api from "../api";
 
 const TechNews = () => {
   const [news, setNews] = useState([]);
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false); // ✅ Loading state
-
-  const BASE_URL = "http://localhost:5000/api/technews"; // Full backend URL
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Fetch today's news from backend
   const fetchTodayNews = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await axios.get(`${BASE_URL}/today`);
+      const res = await api.get("/technews/today");
       setNews(res.data);
     } catch (err) {
       console.error("Failed to fetch news:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "Failed to fetch news ❌"
+      );
     } finally {
       setLoading(false);
     }
@@ -24,13 +29,20 @@ const TechNews = () => {
 
   // Search news by keyword
   const searchNews = async () => {
-    if (!query) return fetchTodayNews();
+    if (!query.trim()) return fetchTodayNews();
+
     setLoading(true);
+    setError(null);
     try {
-      const res = await axios.get(`${BASE_URL}/search?query=${query}`);
+      const res = await api.get(`/technews/search?query=${encodeURIComponent(query)}`);
       setNews(res.data);
     } catch (err) {
       console.error("Failed to search news:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "Failed to search news ❌"
+      );
     } finally {
       setLoading(false);
     }
@@ -39,11 +51,17 @@ const TechNews = () => {
   // Refresh news (get latest from backend)
   const refreshNews = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await axios.post(`${BASE_URL}/refresh`);
+      const res = await api.post("/technews/refresh");
       setNews(res.data);
     } catch (err) {
       console.error("Failed to refresh news:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "Failed to refresh news ❌"
+      );
     } finally {
       setLoading(false);
     }
@@ -77,13 +95,23 @@ const TechNews = () => {
             className="me-2"
             style={{ maxWidth: "400px" }}
           />
-          <Button variant="success" onClick={searchNews} className="me-2" disabled={loading}>
+          <Button
+            variant="success"
+            onClick={searchNews}
+            className="me-2"
+            disabled={loading}
+          >
             Search
           </Button>
           <Button variant="primary" onClick={refreshNews} disabled={loading}>
             Refresh
           </Button>
         </Form>
+
+        {/* Error */}
+        {error && (
+          <div className="alert alert-danger text-center mb-4">{error}</div>
+        )}
 
         {/* Loading Spinner */}
         {loading && (
@@ -100,12 +128,20 @@ const TechNews = () => {
             <Col md={4} key={index}>
               <Card className="h-100 shadow-sm">
                 <Card.Body>
-                  <Card.Title style={{ color: "#28a745" }}>{article.title}</Card.Title>
-                  <Card.Text style={{ color: "#000000" }}>{article.description}</Card.Text>
+                  <Card.Title style={{ color: "#28a745" }}>
+                    {article.title}
+                  </Card.Title>
+                  <Card.Text style={{ color: "#000000" }}>
+                    {article.description}
+                  </Card.Text>
                 </Card.Body>
                 <Card.Footer className="d-flex justify-content-between align-items-center">
                   <small>{article.source}</small>
-                  <small>{new Date(article.publishedAt).toLocaleDateString()}</small>
+                  <small>
+                    {article.publishedAt
+                      ? new Date(article.publishedAt).toLocaleDateString()
+                      : ""}
+                  </small>
                   <a
                     href={article.url}
                     target="_blank"
