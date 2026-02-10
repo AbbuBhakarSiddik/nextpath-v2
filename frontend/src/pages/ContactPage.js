@@ -18,19 +18,19 @@ const ContactPage = () => {
       name: "ThousifUlla",
       profession: "Developer/Researcher",
       email: "nextpathai@gmail.com",
-      image: "/assets/.jpg",
+      image: "/assets/thousif.jpeg",
     },
     {
       name: "Arbaz Pasha",
-      profession: "presentation/reports",
+      profession: "presentation",
       email: "nextpathai@gmail.com",
-      image: "/assets/.jpg",
+      image: "/assets/arbaz.jpeg",
     },
     {
       name: "Pruthvi H D",
       profession: "Reserve designer",
       email: "nextpathai@gmail.com",
-      image: "/assets/.jpg",
+      image: "/assets/pruthvi.jpeg",
     },
   ];
 
