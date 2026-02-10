@@ -18,7 +18,7 @@ const ContactPage = () => {
       name: "ThousifUlla",
       profession: "Developer/Researcher",
       email: "nextpathai@gmail.com",
-      image: "/assets/thousif.jpeg",
+      image: "/assets/thosif.jpeg",
     },
     {
       name: "Arbaz Pasha",
