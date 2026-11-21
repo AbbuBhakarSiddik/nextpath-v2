@@ -5,8 +5,13 @@ import "../styles/Chat.css";
 const SESSION_KEY = "np_chat_sessions";
 const TTL = 24 * 60 * 60 * 1000;
 
-// ── The correct base URL — matches your api.js exactly ──────────
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+// ── The correct base URL — matches api.js exactly ───────────────
+const BASE_URL =
+  process.env.REACT_APP_API_URL !== undefined
+    ? process.env.REACT_APP_API_URL
+    : process.env.NODE_ENV === "production"
+    ? ""
+    : "http://localhost:5000";
 const STREAM_URL = `${BASE_URL}/api/chat/stream`;
 
 // ── Markdown renderer ───────────────────────────────────────────
