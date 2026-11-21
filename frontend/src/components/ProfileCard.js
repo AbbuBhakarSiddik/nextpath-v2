@@ -18,6 +18,7 @@ const ProfileCard = ({ profile }) => {
       style={{
         borderRadius: "16px",
         transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        position: "relative",
       }}
     >
       {/* Header with Monogram */}
@@ -40,8 +41,16 @@ const ProfileCard = ({ profile }) => {
         >
           {initials}
         </div>
-        <div>
-          <h5 className="fw-bold text-white mb-1" style={{ fontSize: "1.1rem" }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h5
+            className="fw-bold text-white mb-1"
+            style={{
+              fontSize: "1.05rem",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {profile.name}
           </h5>
           <span
@@ -53,6 +62,11 @@ const ProfileCard = ({ profile }) => {
               color: "#38bdf8",
               border: "1px solid rgba(56, 189, 248, 0.25)",
               fontWeight: 600,
+              display: "inline-block",
+              maxWidth: "100%",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
             {profile.profession}
@@ -62,15 +76,29 @@ const ProfileCard = ({ profile }) => {
 
       {/* Education */}
       {profile.education && (
-        <div className="d-flex align-items-center gap-2 mb-3" style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-          <FiBookOpen style={{ color: "#64748b" }} />
-          <span>{profile.education}</span>
+        <div
+          className="d-flex align-items-center gap-2 mb-3"
+          style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}
+        >
+          <FiBookOpen style={{ color: "#64748b", flexShrink: 0 }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {profile.education}
+          </span>
         </div>
       )}
 
       {/* Skills Badges */}
       <div className="mb-3 flex-grow-1">
-        <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#64748b", fontWeight: 700, marginBottom: "8px" }}>
+        <div
+          style={{
+            fontSize: "0.72rem",
+            textTransform: "uppercase",
+            color: "#64748b",
+            fontWeight: 700,
+            letterSpacing: "0.05em",
+            marginBottom: "8px",
+          }}
+        >
           Tech Stack
         </div>
         <div className="d-flex flex-wrap gap-1">
@@ -92,10 +120,19 @@ const ProfileCard = ({ profile }) => {
         </div>
       </div>
 
-      {/* Projects */}
+      {/* Featured Projects */}
       {profile.projects && profile.projects.length > 0 && (
         <div className="mb-3">
-          <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#64748b", fontWeight: 700, marginBottom: "6px" }}>
+          <div
+            style={{
+              fontSize: "0.72rem",
+              textTransform: "uppercase",
+              color: "#64748b",
+              fontWeight: 700,
+              letterSpacing: "0.05em",
+              marginBottom: "6px",
+            }}
+          >
             Featured Projects
           </div>
           <div className="d-flex flex-column gap-1">
@@ -126,7 +163,7 @@ const ProfileCard = ({ profile }) => {
         </div>
       )}
 
-      {/* Looking For & Contact */}
+      {/* Looking For & Connect */}
       <div
         className="mt-auto pt-3 d-flex flex-column gap-2"
         style={{ borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}
@@ -136,22 +173,21 @@ const ProfileCard = ({ profile }) => {
             <strong style={{ color: "#00FF7F" }}>Looking for:</strong> {profile.lookingFor}
           </div>
         )}
-        <a
-          href={`mailto:${profile.contactEmail}`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            color: "var(--text-muted)",
-            textDecoration: "none",
-            fontSize: "0.8rem",
-            transition: "color 0.2s ease",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#00FF7F")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
-        >
-          <FiMail style={{ color: "#00FF7F" }} /> {profile.contactEmail}
-        </a>
+        {profile.contactEmail && (
+          <a
+            href={`mailto:${profile.contactEmail}`}
+            className="btn-ghost justify-content-center py-2 mt-1"
+            style={{
+              fontSize: "0.8rem",
+              borderRadius: "8px",
+              color: "#00FF7F",
+              borderColor: "rgba(0, 255, 127, 0.25)",
+              backgroundColor: "rgba(0, 255, 127, 0.05)",
+            }}
+          >
+            <FiMail /> Connect via Email
+          </a>
+        )}
       </div>
     </div>
   );

@@ -5,28 +5,33 @@ import { prisma } from "../config/db.js";
 
 const router = express.Router();
 
+const PERSONA_CONTEXTS = {
+  architect: "Persona: Staff / Principal Systems Architect. Emphasize distributed systems, high availability, resilience, clean architectural patterns, trade-offs, and technical leadership.",
+  recruiter: "Persona: FAANG & Tier-1 Tech Recruiter / Career Strategist. Focus on resume impact metrics (Google X-Y-Z formula), hiring bar expectations, interview loops, leveling, and negotiation.",
+  founder: "Persona: Y Combinator / Tech Startup Founder & CTO. Focus on rapid execution, 0-to-1 building, full-stack pragmatism, product velocity, and startup equity/ownership.",
+  junior: "Persona: Patient Senior Developer Mentor. Focus on breaking complex ideas into clear mental models, beginner-friendly roadmaps, debugging best practices, and encouraging tone.",
+};
+
 const systemInstruction = {
   parts: [
     {
-      text: `You are NextPath.ai, an expert Career Advisor AI assistant.
+      text: `You are NextPath.ai, an elite Career Advisor & Technical Mentor AI assistant.
 
-Your job is to help users with:
-- Career guidance and planning
-- Interview preparation and tech insights
-- Skills and course recommendations
-- Job search strategies
-- Industry insights
+Your mission:
+- Career guidance, transitions, and personalized roadmaps
+- Technical interview prep (System Design, Coding, Behavioral)
+- Industry skill gap analysis and certification advice
+- Resume review and positioning for high-tier tech roles
 
-Formatting rules (IMPORTANT — always follow these):
-- Use **bold** for key terms, job titles, and important points
-- Use bullet points (- item) for lists of tips, skills, or options
-- Use numbered lists (1. item) for step-by-step processes
-- Use headings (## Heading) to separate major sections when the response is long
-- Use inline code for technical terms, tools, or technologies
-- Keep paragraphs short and scannable
-- Never write a wall of text — always break up content
-
-Be encouraging, concise, and actionable.`,
+Formatting rules (Always adhere to these):
+- Use **bold** for key concepts, technologies, and high-impact actions
+- Use structured bullet points (- item) for lists
+- Use numbered lists (1. item) for sequential steps or roadmaps
+- Use headings (## Heading) to organize major sections
+- Use \`code spans\` for libraries, CLI commands, and tech tools
+- When providing code, use markdown code blocks (\`\`\`language ... \`\`\`)
+- Keep paragraphs punchy and easy to scan on both mobile and desktop screens
+- Be encouraging, precise, and actionable.`,
     },
   ],
   role: "system",
@@ -45,10 +50,13 @@ function sendEvent(res, data) {
 // ── Streaming endpoint ──────────────────────────────────────────
 router.post("/stream", async (req, res) => {
   try {
-    const { message } = req.body;
-    if (!message) {
+    const { message, persona = "architect" } = req.body;
+    if (!message || !message.trim()) {
       return res.status(400).json({ error: "Message is required" });
     }
+
+    const personaInstruction = PERSONA_CONTEXTS[persona] || PERSONA_CONTEXTS.architect;
+    const promptWithPersona = `[Directive: ${personaInstruction}]\n\nUser Question: ${message.trim()}`;
 
     // SSE headers
     res.setHeader("Content-Type", "text/event-stream");
@@ -64,7 +72,7 @@ router.post("/stream", async (req, res) => {
     req.on("close", () => clearInterval(keepAlive));
 
     // ── Cache hit: buffer 4 lines then stream rest ──────────────
-    const cacheKey = message.trim().toLowerCase();
+    const cacheKey = `${persona}:${message.trim().toLowerCase()}`;
     if (chatCache.has(cacheKey)) {
       const cached = chatCache.get(cacheKey);
       if (Date.now() - cached.timestamp < CACHE_TTL) {
@@ -72,7 +80,7 @@ router.post("/stream", async (req, res) => {
         const bufferPart = lines.slice(0, 4).join("\n");
         const streamPart = lines.slice(4).join("\n");
 
-        await new Promise((r) => setTimeout(r, 600));
+        await new Promise((r) => setTimeout(r, 400));
         sendEvent(res, { chunk: bufferPart });
 
         if (streamPart) {
@@ -92,10 +100,10 @@ router.post("/stream", async (req, res) => {
     // ── Live Gemini stream ──────────────────────────────────────
     const chat = model.startChat({
       history: [],
-      generationConfig: { maxOutputTokens: 2048 },
+      generationConfig: { maxOutputTokens: 2048, temperature: 0.65 },
     });
 
-    const result = await chat.sendMessageStream(message);
+    const result = await chat.sendMessageStream(promptWithPersona);
 
     let fullReply = "";
     let buffer = "";
@@ -109,28 +117,23 @@ router.post("/stream", async (req, res) => {
 
       if (!bufferSent) {
         buffer += text;
-        // Count non-empty lines so far
         const nonEmptyLines = buffer
           .split("\n")
           .filter((l) => l.trim().length > 0).length;
 
-        if (nonEmptyLines >= 4) {
-          // Flush buffer as one chunk after tiny delay for effect
-          await new Promise((r) => setTimeout(r, 300));
+        if (nonEmptyLines >= 3) {
+          await new Promise((r) => setTimeout(r, 200));
           sendEvent(res, { chunk: buffer });
           buffer = "";
           bufferSent = true;
         }
-        // else: keep buffering — frontend shows typing dots
       } else {
-        // Stream every chunk immediately after buffer is flushed
         sendEvent(res, { chunk: text });
       }
     }
 
-    // Short response that never hit 4 lines — flush whatever buffered
+    // Flush any leftover buffer
     if (!bufferSent && buffer) {
-      await new Promise((r) => setTimeout(r, 300));
       sendEvent(res, { chunk: buffer });
     }
 
@@ -146,15 +149,17 @@ router.post("/stream", async (req, res) => {
           type: "chat",
           userQuery: message.substring(0, 200),
           outputSummary: fullReply.substring(0, 500),
-          fullOutput: { reply: fullReply },
+          fullOutput: { reply: fullReply, persona },
+          metadata: { persona },
         },
       })
       .catch(() => {});
-
   } catch (error) {
-    console.error("❌ Gemini Streaming Error:", error);
+    console.error("❌ Gemini Streaming Error in /api/chat/stream:", error);
     try {
-      sendEvent(res, { error: "Something went wrong. Please try again." });
+      sendEvent(res, {
+        error: "Advisor service briefly unavailable. Please try again or switch persona.",
+      });
       res.end();
     } catch (_) {}
   }
@@ -163,12 +168,15 @@ router.post("/stream", async (req, res) => {
 // ── Non-streaming fallback ──────────────────────────────────────
 router.post("/", async (req, res) => {
   try {
-    const { message } = req.body;
-    if (!message) {
+    const { message, persona = "architect" } = req.body;
+    if (!message || !message.trim()) {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    const cacheKey = message.trim().toLowerCase();
+    const personaInstruction = PERSONA_CONTEXTS[persona] || PERSONA_CONTEXTS.architect;
+    const promptWithPersona = `[Directive: ${personaInstruction}]\n\nUser Question: ${message.trim()}`;
+
+    const cacheKey = `${persona}:${message.trim().toLowerCase()}`;
     if (chatCache.has(cacheKey)) {
       const cached = chatCache.get(cacheKey);
       if (Date.now() - cached.timestamp < CACHE_TTL) {
@@ -179,24 +187,30 @@ router.post("/", async (req, res) => {
 
     const chat = model.startChat({
       history: [],
-      generationConfig: { maxOutputTokens: 2048 },
+      generationConfig: { maxOutputTokens: 2048, temperature: 0.65 },
     });
 
-    const result = await chat.sendMessage(message);
+    const result = await chat.sendMessage(promptWithPersona);
     const aiResponse = result.response.text();
 
     chatCache.set(cacheKey, { reply: aiResponse, timestamp: Date.now() });
-    RecentOutput.create({
-      type: "chat",
-      userQuery: message.substring(0, 200),
-      outputSummary: aiResponse.substring(0, 500),
-      fullOutput: { reply: aiResponse },
-    }).catch((err) => console.error("Failed to save recent output:", err));
 
-    res.json({ reply: aiResponse });
+    prisma.aiActivity
+      .create({
+        data: {
+          type: "chat",
+          userQuery: message.substring(0, 200),
+          outputSummary: aiResponse.substring(0, 500),
+          fullOutput: { reply: aiResponse, persona },
+          metadata: { persona },
+        },
+      })
+      .catch(() => {});
+
+    return res.json({ reply: aiResponse });
   } catch (error) {
-    console.error("❌ Gemini API Error:", error);
-    res.status(500).json({ error: "Something went wrong with Gemini API" });
+    console.error("❌ Gemini API Error in /api/chat:", error);
+    return res.status(500).json({ error: "Something went wrong with Gemini API" });
   }
 });
 

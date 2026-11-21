@@ -17,9 +17,9 @@ export default function Navbar({ onOpenCommandPalette }) {
         position: "sticky",
         top: 0,
         zIndex: 1000,
-        backgroundColor: "rgba(8, 12, 20, 0.8)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        backgroundColor: "rgba(8, 12, 20, 0.85)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
         borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
       }}
     >
@@ -41,6 +41,7 @@ export default function Navbar({ onOpenCommandPalette }) {
             gap: "10px",
             textDecoration: "none",
           }}
+          onClick={() => setMobileMenuOpen(false)}
         >
           <div
             style={{
@@ -195,16 +196,17 @@ export default function Navbar({ onOpenCommandPalette }) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "36px",
-              height: "36px",
+              width: "40px",
+              height: "40px",
               borderRadius: "8px",
-              backgroundColor: "transparent",
+              backgroundColor: mobileMenuOpen ? "rgba(0, 255, 127, 0.15)" : "transparent",
               border: "1px solid rgba(255, 255, 255, 0.15)",
-              color: "#fff",
+              color: mobileMenuOpen ? "#00FF7F" : "#fff",
               cursor: "pointer",
             }}
+            aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <FiX /> : <FiMenu />}
+            {mobileMenuOpen ? <FiX style={{ fontSize: "1.3rem" }} /> : <FiMenu style={{ fontSize: "1.3rem" }} />}
           </button>
         </div>
       </div>
@@ -214,14 +216,17 @@ export default function Navbar({ onOpenCommandPalette }) {
         <div
           className="d-lg-none"
           style={{
-            backgroundColor: "#0d1322",
+            backgroundColor: "rgba(10, 15, 26, 0.98)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
             borderBottom: "1px solid rgba(0, 255, 127, 0.3)",
-            padding: "16px 20px",
+            padding: "16px 20px 24px",
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.6)",
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#64748b", fontWeight: 700 }}>
-              AI Tools
+            <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#64748b", fontWeight: 700, paddingLeft: "6px" }}>
+              AI Intelligence Engines
             </span>
             {features.map((feature) => (
               <Link
@@ -232,11 +237,13 @@ export default function Navbar({ onOpenCommandPalette }) {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
+                  minHeight: "44px",
                   color: isActive(feature.path) ? "#00FF7F" : "#e2e8f0",
                   textDecoration: "none",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  backgroundColor: isActive(feature.path) ? "rgba(0, 255, 127, 0.1)" : "transparent",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  backgroundColor: isActive(feature.path) ? "rgba(0, 255, 127, 0.12)" : "rgba(255, 255, 255, 0.03)",
+                  border: isActive(feature.path) ? "1px solid rgba(0, 255, 127, 0.3)" : "1px solid rgba(255, 255, 255, 0.05)",
                   fontWeight: 600,
                   fontSize: "0.95rem",
                 }}
@@ -245,6 +252,9 @@ export default function Navbar({ onOpenCommandPalette }) {
                 <span
                   style={{
                     fontSize: "0.7rem",
+                    padding: "2px 8px",
+                    borderRadius: "9999px",
+                    backgroundColor: "rgba(255, 255, 255, 0.06)",
                     color: feature.badgeColor || "#00FF7F",
                   }}
                 >
@@ -253,27 +263,34 @@ export default function Navbar({ onOpenCommandPalette }) {
               </Link>
             ))}
 
-            <hr style={{ borderColor: "rgba(255, 255, 255, 0.08)", margin: "12px 0" }} />
+            <hr style={{ borderColor: "rgba(255, 255, 255, 0.08)", margin: "14px 0" }} />
 
-            <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ display: "flex", gap: "16px", paddingLeft: "6px" }}>
+              <Link
+                to="/community"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.9rem", minHeight: "44px", display: "flex", alignItems: "center" }}
+              >
+                Community
+              </Link>
               <Link
                 to="/features"
                 onClick={() => setMobileMenuOpen(false)}
-                style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.9rem" }}
+                style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.9rem", minHeight: "44px", display: "flex", alignItems: "center" }}
               >
                 Features
               </Link>
               <Link
                 to="/about"
                 onClick={() => setMobileMenuOpen(false)}
-                style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.9rem" }}
+                style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.9rem", minHeight: "44px", display: "flex", alignItems: "center" }}
               >
                 About
               </Link>
               <Link
                 to="/contact"
                 onClick={() => setMobileMenuOpen(false)}
-                style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.9rem" }}
+                style={{ color: "#94a3b8", textDecoration: "none", fontSize: "0.9rem", minHeight: "44px", display: "flex", alignItems: "center" }}
               >
                 Contact
               </Link>
