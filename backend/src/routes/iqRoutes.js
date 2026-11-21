@@ -1,164 +1,240 @@
+// backend/src/routes/iqRoutes.js
 import express from "express";
 import fetch from "node-fetch";
+import RecentOutput from "../models/RecentOutput.js";
+import QuizScore from "../models/QuizScore.js";
+import { getRandomBackupQuestion } from "../data/backupQuestions.js";
 
 const router = express.Router();
 router.use(express.json());
 
-// ✅ Free models only
+// Free Gemini models — raced in parallel
 const MODELS = [
   "gemini-2.5-flash",
   "gemini-2.0-flash-001",
-  "gemini-2.0-flash-lite",
   "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
 ];
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// In-Memory Leaderboard Cache for High Concurrency (100+ Students)
+let cachedLeaderboard = [];
+let lastLeaderboardFetch = 0;
+const LEADERBOARD_CACHE_TTL = 5000; // 5 seconds cache
 
-async function callGemini(model, category, difficulty, retries = 2) {
+// ── Call a single Gemini model with enhanced prompt ─────────────────────────
+async function callGemini(model, category, difficulty) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`;
-5
-  const body = {
-    contents: [
-      {
-        parts: [
-          {
-            text: `Generate ONE multiple-choice question in valid JSON ONLY.
-Category: ${category}
-Difficulty: ${difficulty}
 
-Return ONLY JSON in this exact structure (no markdown, no extra text):
+  let focusHint = "";
+  if (category === "dsa") {
+    focusHint = "Focus on interesting data structure traps, code output tracing, recursive depth, or time/space complexity edge cases.";
+  } else if (category === "error") {
+    focusHint = "Focus on subtle code bugs (JavaScript, Python, C++, or SQL), closures, scope leaks, off-by-one errors, or truthy/falsy anomalies.";
+  } else {
+    focusHint = "Focus on clever logic riddles, probability paradoxes, deductive sequences, or mathematical game theory.";
+  }
+
+  const prompt = `You are an elite competitive coding and technical quiz master.
+Generate ONE engaging, thought-provoking multiple-choice ${difficulty}-difficulty question about "${category}".
+${focusHint}
+
+Rules:
+- Make the question interesting and educational (avoid cliché or boring textbook questions)
+- All 4 options must be plausible and distinct
+- The explanation must clearly justify why the correct answer is right and why distractors are wrong
+- Return ONLY valid raw JSON — no markdown fences, no backticks, no preamble
+
+Required JSON structure:
 {
-  "question": "string",
+  "question": "string (can include code snippets or formatting)",
   "options": ["string", "string", "string", "string"],
   "correct_index": 0,
   "explanation": "string"
-}`,
-          },
-        ],
-      },
-    ],
-  };
+}`;
 
-  for (let attempt = 1; attempt <= retries + 1; attempt++) {
+  // 4 second timeout per model call to prevent slow hanging requests
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+  try {
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      signal: controller.signal,
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.8, maxOutputTokens: 600 },
+      }),
     });
 
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(`${model} HTTP ${response.status}: ${err?.error?.message || "unknown"}`);
+    }
+
     const rawData = await response.json();
+    let content = rawData?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!content) throw new Error(`${model} returned empty content`);
 
-    // ✅ Success
-    if (response.ok) {
-      return { ok: true, rawData, model };
+    content = content.replace(/^```[\w]*\n?/m, "").replace(/```$/m, "").trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      const match = content.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error(`${model} returned non-JSON content`);
+      parsed = JSON.parse(match[0]);
     }
 
-    const msg = rawData?.error?.message || "";
-
-    // ✅ 429 retry with wait
-    if (response.status === 429 && attempt <= retries) {
-      console.log(
-        `⚠️ ${model} rate-limited. Attempt ${attempt}/${retries + 1}. Waiting 15s...`
-      );
-      await sleep(15000);
-      continue;
+    if (
+      typeof parsed.question !== "string" ||
+      !Array.isArray(parsed.options) ||
+      parsed.options.length !== 4 ||
+      typeof parsed.correct_index !== "number" ||
+      parsed.correct_index < 0 ||
+      parsed.correct_index > 3
+    ) {
+      throw new Error(`${model} returned malformed question data`);
     }
 
-    // ❌ Fail (no more retries)
-    return { ok: false, rawData, model, status: response.status };
+    return { ...parsed, model };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
   }
 }
 
+// ── POST /generate-question ─────────────────────────────────────────────────
+// High-concurrency optimized: races models, with instant local backup fallback
 router.post("/generate-question", async (req, res) => {
-  const { category, difficulty } = req.body;
+  const { category = "logical", difficulty = "medium" } = req.body;
 
   try {
-    let finalResult = null;
-
-    // ✅ Try models one by one
-    for (const model of MODELS) {
-      console.log("🔁 Trying model:", model);
-
-      const result = await callGemini(model, category, difficulty, 2);
-      finalResult = result;
-
-      if (!result.ok) {
-        console.log(`❌ ${model} failed:`, result.rawData?.error?.message);
-        continue;
-      }
-
-      // Extract text
-      let content = result.rawData?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      if (!content) {
-        console.log(`❌ ${model} returned no content`);
-        continue;
-      }
-
-      // Remove fences
-      if (content.startsWith("```")) {
-        content = content.replace(/```json|```/g, "").trim();
-      }
-
-      // Parse JSON
-      let parsed;
-      try {
-        parsed = JSON.parse(content);
-      } catch (e) {
-        console.log(`❌ ${model} returned invalid JSON`, content);
-        continue;
-      }
-
-      // Validate
-      if (
-        !parsed.question ||
-        !Array.isArray(parsed.options) ||
-        parsed.options.length !== 4 ||
-        typeof parsed.correct_index !== "number"
-      ) {
-        console.log(`❌ ${model} returned incomplete data`, parsed);
-        continue;
-      }
-
-      // ✅ Final success response
-      return res.status(200).json({
-        ...parsed,
-        from: "gemini",
-        model,
-      });
-    }
-
-    // ✅ If all models fail
-    return res.status(429).json({
-      success: false,
-      message:
-        "Gemini free quota exceeded / rate limit. Please try again later.",
-      lastError: finalResult?.rawData?.error?.message || "Unknown error",
-    });
-  } catch (err) {
-    console.error("🔥 Error generating question:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Server error while generating question",
-      error: err.message,
-    });
-  }
-  return res.status(503).json({
-  success: false,
-  code: "AI_QUOTA_EXCEEDED",
-  message: "🚧 IQ Tester is under update. Please try again later.",
-});
-
-});
-router.get("/models", async (req, res) => {
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`
+    // Attempt racing Gemini models
+    const result = await Promise.any(
+      MODELS.map((model) => callGemini(model, category, difficulty))
     );
-    const data = await response.json();
-    res.json(data);
+
+    // Save audit log asynchronously without blocking response
+    RecentOutput.create({
+      type: "iq",
+      userQuery: `${category} - ${difficulty}`,
+      outputSummary: result.question.substring(0, 300),
+      metadata: { model: result.model, category, difficulty },
+    }).catch(() => {});
+
+    return res.status(200).json({ ...result, from: "gemini" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    // If all models rate-limit or fail, serve instant curated backup question (Zero-Downtime)
+    console.warn(`⚠️ Gemini API unavailable (${err?.message || "rate-limited"}). Serving backup question.`);
+    const backup = getRandomBackupQuestion(category, difficulty);
+    return res.status(200).json({ ...backup, model: "nextpath-curated-engine" });
+  }
+});
+
+// ── POST /submit-score (Save Player Score & Update Leaderboard) ─────────────
+router.post("/submit-score", async (req, res) => {
+  const {
+    playerName,
+    score = 0,
+    total = 0,
+    streak = 0,
+    category = "general",
+    difficulty = "medium",
+    timeTaken = 0,
+  } = req.body;
+
+  const sanitizedName = String(playerName || "Anonymous Challenger").trim().slice(0, 40);
+  const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+
+  try {
+    const entry = new QuizScore({
+      playerName: sanitizedName,
+      score,
+      total,
+      percentage,
+      streak,
+      category,
+      difficulty,
+      timeTaken,
+    });
+
+    await entry.save();
+
+    // Invalidate in-memory cache to reflect new high score immediately
+    lastLeaderboardFetch = 0;
+
+    return res.status(201).json({
+      success: true,
+      entry: {
+        id: entry._id,
+        playerName: entry.playerName,
+        score: entry.score,
+        streak: entry.streak,
+        percentage: entry.percentage,
+        createdAt: entry.createdAt,
+      },
+    });
+  } catch (err) {
+    console.error("Score submission error:", err);
+    return res.status(500).json({ error: "Failed to submit score" });
+  }
+});
+
+// ── GET /leaderboard (Optimized for 100+ Concurrent Students) ───────────────
+router.get("/leaderboard", async (_req, res) => {
+  const now = Date.now();
+
+  // Return cached result if within TTL to protect database from 100+ concurrent requests
+  if (cachedLeaderboard.length > 0 && now - lastLeaderboardFetch < LEADERBOARD_CACHE_TTL) {
+    return res.json(cachedLeaderboard);
+  }
+
+  try {
+    const topScores = await QuizScore.find({})
+      .sort({ score: -1, streak: -1, createdAt: -1 })
+      .limit(30)
+      .select("playerName score streak total percentage category difficulty createdAt");
+
+    cachedLeaderboard = topScores;
+    lastLeaderboardFetch = now;
+
+    return res.json(topScores);
+  } catch (err) {
+    console.error("Leaderboard query error:", err);
+    // Return stale cache if available rather than erroring out
+    if (cachedLeaderboard.length > 0) return res.json(cachedLeaderboard);
+    return res.status(500).json({ error: "Failed to load leaderboard" });
+  }
+});
+
+// ── GET /player/:name (Retrieve Returning Player Stats) ─────────────────────
+router.get("/player/:name", async (req, res) => {
+  const name = String(req.params.name || "").trim();
+  if (!name) return res.status(400).json({ error: "Player name is required" });
+
+  try {
+    const records = await QuizScore.find({ playerName: new RegExp(`^${name}$`, "i") })
+      .sort({ score: -1, streak: -1 })
+      .limit(10);
+
+    const bestScore = records.length > 0 ? records[0].score : 0;
+    const maxStreak = records.reduce((max, r) => Math.max(max, r.streak || 0), 0);
+    const totalGames = records.length;
+
+    return res.json({
+      playerName: name,
+      bestScore,
+      maxStreak,
+      totalGames,
+      history: records,
+    });
+  } catch (err) {
+    console.error("Player lookup error:", err);
+    return res.status(500).json({ error: "Failed to fetch player stats" });
   }
 });
 

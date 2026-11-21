@@ -1,2 +1,19 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Secrets & Environment variables (Never push secrets)
 .env
+.env.*
+!.env.example
+
+# Generated reports & files
+*.docx
+job_report.docx
+
+# Logs & debugging
+*.log
+npm-debug.log*
+
+# Prisma SQLite local files
+*.db
+*.db-journal

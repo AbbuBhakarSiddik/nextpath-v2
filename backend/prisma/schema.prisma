@@ -1,0 +1,84 @@
+// backend/prisma/schema.prisma
+// NextPath.ai — Relational Schema for PostgreSQL
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ── Developer Profile (Community Hub) ─────────────────────────
+model Profile {
+  id           String   @id @default(uuid())
+  name         String
+  profession   String
+  education    String?
+  skills       String[]
+  projects     String[]
+  contactEmail String
+  lookingFor   String?
+  githubUrl    String?
+  linkedinUrl  String?
+  avatar       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([contactEmail])
+  @@index([profession])
+}
+
+// ── Skill & IQ Quiz Leaderboard ───────────────────────────────
+model QuizScore {
+  id         String   @id @default(uuid())
+  playerName String   @default("Anonymous Challenger")
+  userEmail  String?
+  category   String
+  difficulty String
+  score      Int
+  total      Int
+  percentage Float
+  streak     Int      @default(0)
+  timeTaken  Int?     // seconds
+  createdAt  DateTime @default(now())
+
+  @@index([playerName])
+  @@index([category, difficulty])
+  @@index([score, streak])
+}
+
+// ── Strategic Career Roadmaps ──────────────────────────────────
+model CareerRoadmap {
+  id            String   @id @default(uuid())
+  role          String
+  currentSkills String?
+  roadmapData   Json     // structured { have, need, courses, projects }
+  createdAt     DateTime @default(now())
+
+  @@index([role])
+}
+
+// ── Unified AI Activity & Showcase Outputs ─────────────────────
+model AiActivity {
+  id            String   @id @default(uuid())
+  type          String   // "chat" | "iq" | "jobadvisor"
+  userQuery     String
+  outputSummary String
+  fullOutput    Json?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ── Feedback & Bug Reports ─────────────────────────────────────
+model BugReport {
+  id          String   @id @default(uuid())
+  email       String
+  bug         String
+  status      String   @default("open") // "open" | "resolved"
+  createdAt   DateTime @default(now())
+}

@@ -1,53 +1,159 @@
 // frontend/src/components/ProfileCard.js
 import React from "react";
-import { Card, Badge } from "react-bootstrap";
+import { FiMail, FiExternalLink, FiFolder, FiBookOpen } from "react-icons/fi";
 
 const ProfileCard = ({ profile }) => {
+  const initials = profile.name
+    ? profile.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "NP";
+
   return (
-    <Card
-      className="h-100 shadow-sm"
+    <div
+      className="glass-panel h-100 p-4 d-flex flex-column"
       style={{
-        backgroundColor: "white",
-        transition: "transform 0.2s, box-shadow 0.2s",
-        cursor: "pointer",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "scale(1.03)";
-        e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.3)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "scale(1)";
-        e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
+        borderRadius: "16px",
+        transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
-      <Card.Body>
-        <Card.Title style={{ color: "#000000ff" }}>{profile.name}</Card.Title>
-        <Badge bg="info" className="mb-2">{profile.profession}</Badge>
-        <Card.Text><strong>Education:</strong> {profile.education}</Card.Text>
-        <Card.Text>
-          <strong>Skills:</strong>{" "}
-          {profile.skills.map((skill) => (
-            <Badge bg="secondary" key={skill} className="me-1">
+      {/* Header with Monogram */}
+      <div className="d-flex align-items-center gap-3 mb-3">
+        <div
+          style={{
+            width: "48px",
+            height: "48px",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, rgba(0, 255, 127, 0.2) 0%, rgba(56, 189, 248, 0.2) 100%)",
+            border: "1px solid rgba(0, 255, 127, 0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#00FF7F",
+            fontWeight: 800,
+            fontSize: "1.1rem",
+            flexShrink: 0,
+          }}
+        >
+          {initials}
+        </div>
+        <div>
+          <h5 className="fw-bold text-white mb-1" style={{ fontSize: "1.1rem" }}>
+            {profile.name}
+          </h5>
+          <span
+            style={{
+              fontSize: "0.75rem",
+              padding: "2px 8px",
+              borderRadius: "6px",
+              backgroundColor: "rgba(56, 189, 248, 0.12)",
+              color: "#38bdf8",
+              border: "1px solid rgba(56, 189, 248, 0.25)",
+              fontWeight: 600,
+            }}
+          >
+            {profile.profession}
+          </span>
+        </div>
+      </div>
+
+      {/* Education */}
+      {profile.education && (
+        <div className="d-flex align-items-center gap-2 mb-3" style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+          <FiBookOpen style={{ color: "#64748b" }} />
+          <span>{profile.education}</span>
+        </div>
+      )}
+
+      {/* Skills Badges */}
+      <div className="mb-3 flex-grow-1">
+        <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#64748b", fontWeight: 700, marginBottom: "8px" }}>
+          Tech Stack
+        </div>
+        <div className="d-flex flex-wrap gap-1">
+          {profile.skills?.map((skill, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: "0.75rem",
+                padding: "3px 8px",
+                borderRadius: "6px",
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                color: "#e2e8f0",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+              }}
+            >
               {skill}
-            </Badge>
+            </span>
           ))}
-        </Card.Text>
-        <Card.Text>
-          <strong>Projects:</strong>
-          <ul>
+        </div>
+      </div>
+
+      {/* Projects */}
+      {profile.projects && profile.projects.length > 0 && (
+        <div className="mb-3">
+          <div style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#64748b", fontWeight: 700, marginBottom: "6px" }}>
+            Featured Projects
+          </div>
+          <div className="d-flex flex-column gap-1">
             {profile.projects.map((p, idx) => (
-              <li key={idx}>
-                <a href={p} target="_blank" rel="noreferrer">{p}</a>
-              </li>
+              <a
+                key={idx}
+                href={p}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  color: "#38bdf8",
+                  textDecoration: "none",
+                  fontSize: "0.8rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <FiFolder style={{ flexShrink: 0 }} />
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{p}</span>
+                <FiExternalLink style={{ flexShrink: 0, fontSize: "0.75rem" }} />
+              </a>
             ))}
-          </ul>
-        </Card.Text>
-        <Card.Text><strong>Email:</strong> {profile.contactEmail}</Card.Text>
+          </div>
+        </div>
+      )}
+
+      {/* Looking For & Contact */}
+      <div
+        className="mt-auto pt-3 d-flex flex-column gap-2"
+        style={{ borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}
+      >
         {profile.lookingFor && (
-          <Card.Text><strong>Looking For:</strong> {profile.lookingFor}</Card.Text>
+          <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+            <strong style={{ color: "#00FF7F" }}>Looking for:</strong> {profile.lookingFor}
+          </div>
         )}
-      </Card.Body>
-    </Card>
+        <a
+          href={`mailto:${profile.contactEmail}`}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            color: "var(--text-muted)",
+            textDecoration: "none",
+            fontSize: "0.8rem",
+            transition: "color 0.2s ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#00FF7F")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+        >
+          <FiMail style={{ color: "#00FF7F" }} /> {profile.contactEmail}
+        </a>
+      </div>
+    </div>
   );
 };
 

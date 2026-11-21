@@ -4,15 +4,16 @@ import { Document, Packer, Paragraph, TextRun } from "docx";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import RecentOutput from "../models/RecentOutput.js";
 
-dotenv.config(); // load .env
+dotenv.config();
 
 const router = express.Router();
 
 // Helper to extract JSON safely
 function extractJson(text) {
   try {
-    const match = text.match(/\{[\s\S]*\}/); // extract JSON block
+    const match = text.match(/\{[\s\S]*\}/);
     if (match) return JSON.parse(match[0]);
   } catch (err) {
     console.error("JSON parse error:", err);
@@ -27,7 +28,6 @@ router.post("/", async (req, res) => {
   if (!role) return res.status(400).json({ error: "Job role is required" });
 
   try {
-    // Call Gemini API
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
@@ -66,6 +66,15 @@ Return JSON format only:
     const data = await response.json();
     const outputText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
     const cleanJson = extractJson(outputText);
+
+    // Save to recent outputs (non-blocking)
+    RecentOutput.create({
+      type: "jobadvisor",
+      userQuery: `${role} | Skills: ${skills || "N/A"}`,
+      outputSummary: `Skills needed: ${(cleanJson.need || []).slice(0, 5).join(", ")}. Courses: ${(cleanJson.courses || []).slice(0, 3).join(", ")}`,
+      fullOutput: cleanJson,
+      metadata: { role },
+    }).catch((err) => console.error("Failed to save recent output:", err));
 
     // Generate DOCX
     const doc = new Document({

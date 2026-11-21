@@ -1,36 +1,31 @@
+// frontend/src/pages/ContactPage.js
 import React, { useState } from "react";
-import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
-import "../styles/ContactPage.css";
+import { FiMail, FiMessageSquare, FiSend, FiCheck, FiAlertCircle } from "react-icons/fi";
 import api from "../api";
 
 const ContactPage = () => {
   const [bugData, setBugData] = useState({ email: "", bug: "" });
   const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const teamMembers = [
     {
       name: "Abbu bhakar siddik",
-      profession: "Java-Full stack Developer",
+      role: "Lead Full Stack Engineer",
       email: "nextpathai@gmail.com",
       image: "/assets/about-me.jpg",
     },
     {
       name: "ThousifUlla",
-      profession: "Developer/Researcher",
+      role: "AI & Systems Researcher",
       email: "nextpathai@gmail.com",
       image: "/assets/thosif.jpeg",
     },
     {
-      name: "Arbaz Pasha",
-      profession: "presentation",
+      name: "Yashwanth Patil",
+      role: "UI / UX Designer",
       email: "nextpathai@gmail.com",
-      image: "/assets/arbaz.jpeg",
-    },
-    {
-      name: "Pruthvi H D",
-      profession: "Reserve designer",
-      email: "nextpathai@gmail.com",
-      image: "/assets/pruthvi.jpeg",
+      image: "/assets/yashwanthpatil.jpeg",
     },
   ];
 
@@ -39,6 +34,8 @@ const ContactPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setStatus("");
     try {
       await api.post("/bugreport", bugData);
       setStatus("success");
@@ -46,92 +43,190 @@ const ContactPage = () => {
     } catch (error) {
       console.error("Bug report failed:", error);
       setStatus("error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container className="py-5">
-      <Row className="mb-5 text-center">
-        <Col>
-          <h1 className="contact-header">Contact NextPath AI Team</h1>
-          <p className="text-muted">Meet the developers behind this project</p>
-        </Col>
-      </Row>
+    <div className="container py-5" style={{ maxWidth: "1100px" }}>
+      {/* Header */}
+      <div className="text-center mb-5">
+        <span className="badge-pill mb-2">
+          <FiMail /> Team & Feedback
+        </span>
+        <h1 className="display-5 fw-bold text-white mb-3">Meet the Team & Get in Touch</h1>
+        <p className="mx-auto" style={{ color: "var(--text-muted)", maxWidth: "600px" }}>
+          Have a feature idea, discovered a bug, or want to contribute to the open-source codebase? 
+          We would love to hear from you.
+        </p>
+      </div>
 
-      {/* Team Section */}
-      <Row className="mb-5">
+      {/* Team Cards */}
+      <div className="row g-4 mb-5">
         {teamMembers.map((member, index) => (
-          <Col md={6} lg={4} key={index} className="mb-4">
-            <Card className="team-card text-center shadow-sm h-100">
-              <div className="team-img-wrapper">
-                <Card.Img
-                  variant="top"
+          <div className="col-md-4" key={index}>
+            <div
+              className="glass-panel p-4 text-center h-100 d-flex flex-column align-items-center"
+              style={{ borderRadius: "16px" }}
+            >
+              <div
+                className="mb-3 position-relative"
+                style={{
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  border: "2px solid rgba(0, 255, 127, 0.4)",
+                  boxShadow: "0 0 20px rgba(0, 255, 127, 0.2)",
+                }}
+              >
+                <img
                   src={member.image}
-                  className="team-img"
+                  alt={member.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </div>
-              <Card.Body>
-                <Card.Title>{member.name}</Card.Title>
-                <Card.Subtitle className="mb-2">
-                  {member.profession}
-                </Card.Subtitle>
-                <Card.Text>{member.email}</Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
+
+              <h5 className="fw-bold text-white mb-1">{member.name}</h5>
+              <span
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#38bdf8",
+                  fontWeight: 600,
+                  marginBottom: "8px",
+                }}
+              >
+                {member.role}
+              </span>
+              <a
+                href={`mailto:${member.email}`}
+                style={{
+                  fontSize: "0.8rem",
+                  color: "var(--text-muted)",
+                  textDecoration: "none",
+                }}
+              >
+                {member.email}
+              </a>
+            </div>
+          </div>
         ))}
-      </Row>
+      </div>
 
-      {/* Bug Report Section */}
-      <Row className="mb-3">
-        <Col md={8} className="mx-auto">
-          <Card className="bug-card p-4 shadow-sm">
-            <h4 className="mb-3">Report a Bug</h4>
+      {/* Feedback & Bug Reporting */}
+      <div className="mx-auto" style={{ maxWidth: "720px" }}>
+        <div className="glass-panel p-4 p-md-5" style={{ borderRadius: "18px" }}>
+          <div className="d-flex align-items-center gap-3 mb-4">
+            <div
+              style={{
+                width: "44px",
+                height: "44px",
+                borderRadius: "12px",
+                backgroundColor: "rgba(0, 255, 127, 0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#00FF7F",
+                fontSize: "1.2rem",
+              }}
+            >
+              <FiMessageSquare />
+            </div>
+            <div>
+              <h4 className="fw-bold text-white mb-0">Report a Bug or Suggest a Feature</h4>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", margin: 0 }}>
+                Directly submitted to our issue tracker.
+              </p>
+            </div>
+          </div>
 
-            {status === "success" && (
-              <Alert variant="success">
-                Bug has been reported successfully!
-              </Alert>
-            )}
+          {status === "success" && (
+            <div
+              className="p-3 mb-4 rounded d-flex align-items-center gap-2"
+              style={{
+                backgroundColor: "rgba(0, 255, 127, 0.15)",
+                border: "1px solid rgba(0, 255, 127, 0.4)",
+                color: "#00FF7F",
+              }}
+            >
+              <FiCheck /> Thank you! Your report has been submitted to the team.
+            </div>
+          )}
 
-            {status === "error" && (
-              <Alert variant="danger">Something went wrong. Try again.</Alert>
-            )}
+          {status === "error" && (
+            <div
+              className="p-3 mb-4 rounded d-flex align-items-center gap-2"
+              style={{
+                backgroundColor: "rgba(239, 68, 68, 0.15)",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                color: "#fca5a5",
+              }}
+            >
+              <FiAlertCircle /> Something went wrong while submitting. Please try again.
+            </div>
+          )}
 
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3">
-                <Form.Label>Your Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  name="email"
-                  value={bugData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  required
-                />
-              </Form.Group>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label text-white fw-semibold small mb-1">
+                Your Email <span style={{ color: "var(--accent-green)" }}>*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={bugData.email}
+                onChange={handleChange}
+                placeholder="developer@example.com"
+                required
+                className="form-control"
+                style={{
+                  backgroundColor: "rgba(0, 0, 0, 0.4)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  color: "#fff",
+                  borderRadius: "10px",
+                  padding: "10px 14px",
+                }}
+              />
+            </div>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Describe the Bug</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  name="bug"
-                  value={bugData.bug}
-                  onChange={handleChange}
-                  placeholder="Explain the issue you found..."
-                  required
-                />
-              </Form.Group>
+            <div className="mb-4">
+              <label className="form-label text-white fw-semibold small mb-1">
+                Description / Feedback <span style={{ color: "var(--accent-green)" }}>*</span>
+              </label>
+              <textarea
+                name="bug"
+                rows={4}
+                value={bugData.bug}
+                onChange={handleChange}
+                placeholder="Describe the bug, steps to reproduce, or feature request in detail..."
+                required
+                className="form-control"
+                style={{
+                  backgroundColor: "rgba(0, 0, 0, 0.4)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  color: "#fff",
+                  borderRadius: "10px",
+                  padding: "10px 14px",
+                }}
+              />
+            </div>
 
-              <Button type="submit" className="bug-btn">
-                Report Bug
-              </Button>
-            </Form>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+            <button
+              type="submit"
+              className="btn-neon w-100 justify-content-center py-3"
+              disabled={loading}
+            >
+              {loading ? "Submitting Report..." : (
+                <>
+                  <FiSend /> Submit Feedback & Bug Report
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,0 +1,19 @@
+{
+  "name": "nextpath-ai-platform",
+  "version": "2.0.0",
+  "description": "NextPath.ai — Open Source AI Career Intelligence Platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node run.js",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run start --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm run start --prefix backend",
+    "db:generate": "npm run db:generate --prefix backend",
+    "db:migrate": "npm run db:migrate --prefix backend",
+    "db:push": "npm run db:push --prefix backend",
+    "db:test": "npm run db:test --prefix backend",
+    "db:studio": "npm run db:studio --prefix backend"
+  }
+}

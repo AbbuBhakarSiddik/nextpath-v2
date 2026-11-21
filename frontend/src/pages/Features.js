@@ -1,112 +1,107 @@
+// frontend/src/pages/Features.js
 import React from "react";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import { FiLayers, FiArrowRight } from "react-icons/fi";
+import { getEnabledFeatures } from "../config/features";
 
 const Features = () => {
-  const featureList = [
-    {
-      title: "Resume Analyzer",
-      description:
-        "Empower your career journey with AI-driven resume insights. Upload your resume and let NextPath AI evaluate your strengths, identify improvement areas, and match your skillset to the most relevant job roles. Designed for precision and growth, it’s like having a professional career coach in your pocket.",
-    },
-    {
-      title: "AI Career Advisor",
-      description:
-        "Harness the power of Gemini AI to explore your best career path. Based on your goals, education, and skills, NextPath AI provides intelligent suggestions, growth roadmaps, and learning resources to help you make informed career decisions and achieve long-term success.",
-    },
-    {
-      title: "IQ Tester",
-      description:
-        "Challenge your intellect with an adaptive AI-powered IQ test. From pattern recognition to logical reasoning, each question evolves with your performance to ensure accurate intelligence measurement — fun, fast, and deeply insightful.",
-    },
-    {
-      title: "Tech News",
-      description:
-        "Stay ahead in the tech world! Get real-time AI-curated news covering breakthroughs in AI, software development, blockchain, and cloud technologies. With keyword search and instant updates, you’ll never miss what’s trending in innovation.",
-    },
-    {
-      title: "Community Hub",
-      description:
-        "Connect with developers around the world. The Community Hub lets you showcase your skills, education, and projects — collaborate with like-minded techies, find opportunities, and grow your professional network. Powered by the spirit of creation and collaboration.",
-    },
-  ];
+  const featureList = getEnabledFeatures();
 
   return (
-    <Container fluid className="bg-dark text-light py-5 min-vh-100">
+    <div className="container py-5" style={{ maxWidth: "1200px" }}>
+      {/* Header */}
       <div className="text-center mb-5">
-        <h1
-          style={{
-            color: "#00FF7F",
-            fontWeight: "bold",
-            fontSize: "2.8rem",
-            textShadow: "0 0 20px rgba(0, 255, 127, 0.5)",
-          }}
-        >
-          NextPath AI Features
-        </h1>
-        <p
-          className="fst-italic"
-          style={{ fontSize: "1.2rem", color: "#b5b5b5" }}
-        >
-          “Discover how each feature empowers innovation, intelligence, and growth.”
+        <span className="badge-pill mb-2">
+          <FiLayers /> Complete Feature Catalog
+        </span>
+        <h1 className="display-5 fw-bold text-white mb-3">AI Engine Capabilities</h1>
+        <p className="mx-auto" style={{ color: "var(--text-muted)", maxWidth: "640px" }}>
+          Discover the complete suite of open-source autonomous tools driving NextPath.ai v2.0.
         </p>
       </div>
 
-      <Row className="justify-content-center px-3">
-        {featureList.map((feature, idx) => (
-          <Col key={idx} md={6} lg={5} xl={4} className="mb-5">
-            <Card
-              className="shadow-lg border-0"
+      {/* Feature List */}
+      <div className="row g-4 justify-content-center">
+        {featureList.map((feature) => (
+          <div key={feature.id} className="col-md-6 col-lg-4">
+            <div
+              className="glass-panel h-100 p-4 d-flex flex-column"
               style={{
-                backgroundColor: "#fff",
-                color: "black",
-                borderRadius: "25px",
-                border: "2px solid rgba(0, 255, 127, 0.6)",
-                boxShadow: "0 0 25px rgba(0, 255, 127, 0.15)",
-                transition:
-                  "transform 0.4s ease, box-shadow 0.4s ease, border 0.4s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.05)";
-                e.currentTarget.style.border = "2px solid #00FF7F";
-                e.currentTarget.style.boxShadow =
-                  "0 0 35px rgba(0, 255, 127, 0.4)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.border =
-                  "2px solid rgba(0, 255, 127, 0.6)";
-                e.currentTarget.style.boxShadow =
-                  "0 0 25px rgba(0, 255, 127, 0.15)";
+                borderRadius: "18px",
+                transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
               }}
             >
-              <Card.Body className="p-4">
-                <Card.Title
-                  className="mb-3 text-center"
+              {/* Category & Badge */}
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <span
                   style={{
-                    color: "#007F3F",
-                    fontWeight: "bold",
-                    fontSize: "1.6rem",
-                    textShadow: "0 0 10px rgba(0, 127, 63, 0.3)",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: feature.badgeColor || "#00FF7F",
                   }}
                 >
-                  {feature.title}
-                </Card.Title>
-                <Card.Text
+                  {feature.category}
+                </span>
+                <span
                   style={{
-                    fontSize: "1.05rem",
-                    lineHeight: "1.6",
-                    textAlign: "justify",
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    padding: "2px 8px",
+                    borderRadius: "9999px",
+                    backgroundColor: "rgba(255, 255, 255, 0.06)",
+                    color: feature.badgeColor || "#00FF7F",
+                    border: `1px solid ${feature.badgeColor || "#00FF7F"}33`,
                   }}
                 >
-                  {feature.description}
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    </Container>
+                  {feature.badge}
+                </span>
+              </div>
 
+              {/* Title & Tagline */}
+              <h4 className="fw-bold text-white mb-1" style={{ fontSize: "1.2rem" }}>
+                {feature.title}
+              </h4>
+              <p
+                style={{
+                  fontSize: "0.8rem",
+                  color: "#38bdf8",
+                  fontWeight: 600,
+                  marginBottom: "12px",
+                }}
+              >
+                {feature.tagline}
+              </p>
+
+              {/* Description */}
+              <p
+                className="flex-grow-1"
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: "0.9rem",
+                  lineHeight: "1.6",
+                }}
+              >
+                {feature.fullDesc || feature.shortDesc}
+              </p>
+
+              {/* Action Button */}
+              {feature.path && (
+                <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
+                  <Link
+                    to={feature.path}
+                    className="btn-neon w-100 justify-content-center py-2"
+                  >
+                    Open Tool <FiArrowRight />
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

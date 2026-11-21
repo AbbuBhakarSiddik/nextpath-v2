@@ -5,48 +5,76 @@ import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // import Routes
 import chatRoutes from "./src/routes/chatRoutes.js";
-import userRoutes from "./src/routes/userRoutes.js";
-import resumeRoutes from "./src/routes/resumeRoutes.js";
 import iqRoutes from "./src/routes/iqRoutes.js";
 import jobAdvisorRoutes from "./src/routes/jobAdvisorRoutes.js";
 import techNewsRoutes from "./src/routes/techNewsRoutes.js";
 import communityRoutes from "./src/routes/communityRoutes.js";
-import bugRoutes from "./src/routes/bugRoutes.js"; // ✅ fixed ESM import
+import bugRoutes from "./src/routes/bugRoutes.js";
+import recentRoutes from "./src/routes/recentRoutes.js";
 
 const app = express();
 
 // Middleware
 app.use(
   cors({
-    origin: ["https://nextpath-v2.vercel.app"],
-    methods: ["GET", "POST", "PUT", "DELETE","OPTIONS"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or same-origin)
+      if (!origin) return callback(null, true);
+      if (
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        origin.endsWith(".vercel.app") ||
+        origin === "https://nextpath-v2.vercel.app"
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive for open-source API access
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    redentials: true,
+    credentials: true,
   })
 );
 app.options("*", cors());
-app.use(express.json({ limit: "10mb" })); // for resume uploads
+app.use(express.json({ limit: "10mb" }));
 app.use(morgan("dev"));
 
 // Health check
 app.get("/api/health", (_req, res) =>
   res.json({ ok: true, service: "nextpathai-backend" })
 );
-app.get("/", (_req, res) => res.send("NextPath.ai backend is running 🚀"));
 
 // Routes
-app.use("/api", userRoutes);
 app.use("/api/chat", chatRoutes);
-app.use("/api/resume", resumeRoutes);
 app.use("/api/iq", iqRoutes);
 app.use("/api/jobadvisor", jobAdvisorRoutes);
 app.use("/api/technews", techNewsRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api", bugRoutes);
+app.use("/api/recent", recentRoutes);
 
+// Serve static frontend build when available (Single-Point Production Serving)
+const frontendBuildPath = path.resolve(__dirname, "../frontend/build");
+if (fs.existsSync(frontendBuildPath)) {
+  app.use(express.static(frontendBuildPath));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(frontendBuildPath, "index.html"));
+  });
+} else {
+  app.get("/", (_req, res) =>
+    res.send("NextPath.ai backend is running 🚀 (Run 'npm run build' to bundle the frontend UI)")
+  );
+}
 
 // Catch-all error handler
 app.use((err, _req, res, _next) => {
@@ -54,20 +82,22 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: err.message || "Internal Server Error" });
 });
 
-// Start server
+// Database Connection (Graceful & Non-Crashing)
+if (process.env.MONGO_URI) {
+  mongoose
+    .connect(process.env.MONGO_URI, { autoIndex: true })
+    .then(() => console.log("✅ MongoDB connected"))
+    .catch((err) => console.warn("⚠️ MongoDB connection warning:", err.message));
+} else {
+  console.log("ℹ️ No MONGO_URI configured; using PostgreSQL/Prisma or offline memory mode.");
+}
+
+// Start server (Only when running standalone, not inside Vercel serverless)
 const PORT = process.env.PORT || 5000;
+if (!process.env.VERCEL) {
+  app.listen(PORT, () =>
+    console.log(`✅ NextPath.ai server running on http://localhost:${PORT}`)
+  );
+}
 
-
-mongoose
-  .connect(process.env.MONGO_URI, { autoIndex: true })
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    app.listen(PORT, () =>
-      console.log(`✅ Server running on http://localhost:${PORT}`)
-    );
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err.message);
-    process.exit(1);
-  });
-console.log("Loaded env:", process.env.MONGO_URI);
+export default app;

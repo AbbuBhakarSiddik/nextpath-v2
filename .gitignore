@@ -1,0 +1,61 @@
+# ==============================================================================
+# NextPath.ai — Monorepo Git Ignore
+# ==============================================================================
+
+# Dependencies
+node_modules/
+*/node_modules/
+.pnp
+.pnp.js
+
+# ── Secrets & Environment Variables (CRITICAL: Never commit to Git) ─────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+*.env
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+frontend/.env.local
+
+# Preserve example config templates for developers
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# ── Production Builds ────────────────────────────────────────────────────────
+build/
+frontend/build/
+dist/
+.vercel/
+
+# ── Logs & Debugging ─────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.system_generated/
+
+# ── Generated Documents & Temp Files ─────────────────────────────────────────
+backend/*.docx
+backend/job_report.docx
+*.docx
+
+# ── Prisma & Database ────────────────────────────────────────────────────────
+prisma/*.db
+prisma/*.db-journal
+
+# ── OS & IDE Files ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
