@@ -1,10 +1,10 @@
 import express from "express";
-import fetch from "node-fetch";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
 import { prisma } from "../config/db.js";
+import { generateContentWithFallback } from "../config/gemini.js";
 
 dotenv.config();
 
@@ -28,17 +28,7 @@ router.post("/", async (req, res) => {
   if (!role) return res.status(400).json({ error: "Job role is required" });
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `You are an AI Job Requirement Advisor.
+    const prompt = `You are an AI Job Requirement Advisor.
 Job Role: ${role}
 User Current Skills: ${skills || ""}
 
@@ -48,23 +38,11 @@ Return JSON format only:
   "need": ["list of skills user is missing"],
   "courses": ["list of recommended courses/certifications"],
   "projects": ["list of project ideas"]
-}`
-                }
-              ]
-            }
-          ]
-        }),
-      }
-    );
+}`;
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("Gemini API error:", text);
-      return res.status(500).json({ error: "Gemini API error" });
-    }
-
-    const data = await response.json();
-    const outputText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const { text: outputText } = await generateContentWithFallback(prompt, {
+      generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+    });
     const cleanJson = extractJson(outputText);
 
     // Save to recent outputs via Prisma (non-blocking)

@@ -1,16 +1,14 @@
 // backend/src/routes/chatRoutes.js
 import express from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getGeminiModel } from "../config/gemini.js";
 import { prisma } from "../config/db.js";
 
 const router = express.Router();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// systemInstruction must be passed at model level as an object with parts
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-  systemInstruction: {
-    parts: [{ text: `You are NextPath.ai, an expert Career Advisor AI assistant.
+const systemInstruction = {
+  parts: [
+    {
+      text: `You are NextPath.ai, an expert Career Advisor AI assistant.
 
 Your job is to help users with:
 - Career guidance and planning
@@ -28,10 +26,13 @@ Formatting rules (IMPORTANT — always follow these):
 - Keep paragraphs short and scannable
 - Never write a wall of text — always break up content
 
-Be encouraging, concise, and actionable.` }],
-    role: "system",
-  },
-});
+Be encouraging, concise, and actionable.`,
+    },
+  ],
+  role: "system",
+};
+
+const model = getGeminiModel({ systemInstruction });
 
 // In-memory cache
 const chatCache = new Map();

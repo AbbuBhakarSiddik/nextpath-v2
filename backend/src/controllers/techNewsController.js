@@ -1,20 +1,11 @@
 // backend/src/controllers/techNewsController.js
 import axios from "axios";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getGeminiModel, generateContentWithFallback } from "../config/gemini.js";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
 
-// Initialize Gemini
-let geminiModel = null;
-if (GEMINI_API_KEY) {
-  try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-  } catch (err) {
-    console.warn("⚠️ Gemini AI initialization warning for TechNews:", err.message);
-  }
-}
+// Initialize Gemini with latest active model
+const geminiModel = getGeminiModel();
 
 // ── Top 1 Genuine Tech Media Outlets Per Country ─────────────────────────────
 export const TOP_TECH_MEDIA = [
@@ -216,7 +207,7 @@ const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes cache to preserve API quota
 
 // ── Pre-Prompted Gemini Technical Summarizer ─────────────────────────────────
 const summarizeWithGemini = async (title, text, source) => {
-  if (!geminiModel || !text || text.trim().length < 20) return text;
+  if (!text || text.trim().length < 20) return text;
 
   try {
     const prompt = `You are NextPath.ai Tech Intelligence Analyst.
@@ -230,8 +221,8 @@ Rules:
 - Discard promotional clickbait, PR marketing, or trivial gadget hype.
 - Be precise, technical, and actionable.`;
 
-    const result = await geminiModel.generateContent(prompt);
-    return result.response.text() || text;
+    const { text: summary } = await generateContentWithFallback(prompt);
+    return summary || text;
   } catch (err) {
     return text;
   }

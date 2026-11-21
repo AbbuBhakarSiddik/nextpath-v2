@@ -7,13 +7,14 @@ import { getRandomBackupQuestion } from "../data/backupQuestions.js";
 const router = express.Router();
 router.use(express.json());
 
-// Free Gemini models — raced in parallel
+// Active Gemini models — raced in parallel
 const MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.0-flash-001",
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-lite",
-];
+  process.env.GEMINI_MODEL,
+  "gemini-flash-lite-latest",
+  "gemini-3.5-flash-lite",
+  "gemini-3.1-flash-lite",
+  "gemini-flash-latest",
+].filter(Boolean);
 
 // In-Memory Leaderboard Cache for High Concurrency (100+ Students)
 let cachedLeaderboard = [];
