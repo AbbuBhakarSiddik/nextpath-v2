@@ -1,8 +1,7 @@
 // backend/src/routes/iqRoutes.js
 import express from "express";
 import fetch from "node-fetch";
-import RecentOutput from "../models/RecentOutput.js";
-import QuizScore from "../models/QuizScore.js";
+import { prisma } from "../config/db.js";
 import { getRandomBackupQuestion } from "../data/backupQuestions.js";
 
 const router = express.Router();
@@ -108,34 +107,35 @@ Required JSON structure:
 }
 
 // ── POST /generate-question ─────────────────────────────────────────────────
-// High-concurrency optimized: races models, with instant local backup fallback
 router.post("/generate-question", async (req, res) => {
   const { category = "logical", difficulty = "medium" } = req.body;
 
   try {
-    // Attempt racing Gemini models
     const result = await Promise.any(
       MODELS.map((model) => callGemini(model, category, difficulty))
     );
 
     // Save audit log asynchronously without blocking response
-    RecentOutput.create({
-      type: "iq",
-      userQuery: `${category} - ${difficulty}`,
-      outputSummary: result.question.substring(0, 300),
-      metadata: { model: result.model, category, difficulty },
-    }).catch(() => {});
+    prisma.aiActivity
+      .create({
+        data: {
+          type: "iq",
+          userQuery: `${category} - ${difficulty}`,
+          outputSummary: result.question.substring(0, 300),
+          metadata: { model: result.model, category, difficulty },
+        },
+      })
+      .catch(() => {});
 
     return res.status(200).json({ ...result, from: "gemini" });
   } catch (err) {
-    // If all models rate-limit or fail, serve instant curated backup question (Zero-Downtime)
     console.warn(`⚠️ Gemini API unavailable (${err?.message || "rate-limited"}). Serving backup question.`);
     const backup = getRandomBackupQuestion(category, difficulty);
     return res.status(200).json({ ...backup, model: "nextpath-curated-engine" });
   }
 });
 
-// ── POST /submit-score (Save Player Score & Update Leaderboard) ─────────────
+// ── POST /submit-score (Save Player Score to Supabase & Update Leaderboard) ─
 router.post("/submit-score", async (req, res) => {
   const {
     playerName,
@@ -148,21 +148,21 @@ router.post("/submit-score", async (req, res) => {
   } = req.body;
 
   const sanitizedName = String(playerName || "Anonymous Challenger").trim().slice(0, 40);
-  const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+  const percentage = total > 0 ? parseFloat(((score / total) * 100).toFixed(1)) : 0;
 
   try {
-    const entry = new QuizScore({
-      playerName: sanitizedName,
-      score,
-      total,
-      percentage,
-      streak,
-      category,
-      difficulty,
-      timeTaken,
+    const entry = await prisma.quizScore.create({
+      data: {
+        playerName: sanitizedName,
+        score: parseInt(score, 10) || 0,
+        total: parseInt(total, 10) || 0,
+        percentage,
+        streak: parseInt(streak, 10) || 0,
+        category,
+        difficulty,
+        timeTaken: parseInt(timeTaken, 10) || 0,
+      },
     });
-
-    await entry.save();
 
     // Invalidate in-memory cache to reflect new high score immediately
     lastLeaderboardFetch = 0;
@@ -170,7 +170,7 @@ router.post("/submit-score", async (req, res) => {
     return res.status(201).json({
       success: true,
       entry: {
-        id: entry._id,
+        id: entry.id,
         playerName: entry.playerName,
         score: entry.score,
         streak: entry.streak,
@@ -194,10 +194,21 @@ router.get("/leaderboard", async (_req, res) => {
   }
 
   try {
-    const topScores = await QuizScore.find({})
-      .sort({ score: -1, streak: -1, createdAt: -1 })
-      .limit(30)
-      .select("playerName score streak total percentage category difficulty createdAt");
+    const topScores = await prisma.quizScore.findMany({
+      orderBy: [{ score: "desc" }, { streak: "desc" }, { createdAt: "desc" }],
+      take: 30,
+      select: {
+        id: true,
+        playerName: true,
+        score: true,
+        streak: true,
+        total: true,
+        percentage: true,
+        category: true,
+        difficulty: true,
+        createdAt: true,
+      },
+    });
 
     cachedLeaderboard = topScores;
     lastLeaderboardFetch = now;
@@ -205,21 +216,24 @@ router.get("/leaderboard", async (_req, res) => {
     return res.json(topScores);
   } catch (err) {
     console.error("Leaderboard query error:", err);
-    // Return stale cache if available rather than erroring out
     if (cachedLeaderboard.length > 0) return res.json(cachedLeaderboard);
     return res.status(500).json({ error: "Failed to load leaderboard" });
   }
 });
 
-// ── GET /player/:name (Retrieve Returning Player Stats) ─────────────────────
+// ── GET /player/:name (Retrieve Returning Player Stats from Supabase) ───────
 router.get("/player/:name", async (req, res) => {
   const name = String(req.params.name || "").trim();
   if (!name) return res.status(400).json({ error: "Player name is required" });
 
   try {
-    const records = await QuizScore.find({ playerName: new RegExp(`^${name}$`, "i") })
-      .sort({ score: -1, streak: -1 })
-      .limit(10);
+    const records = await prisma.quizScore.findMany({
+      where: {
+        playerName: { equals: name, mode: "insensitive" },
+      },
+      orderBy: [{ score: "desc" }, { streak: "desc" }],
+      take: 10,
+    });
 
     const bestScore = records.length > 0 ? records[0].score : 0;
     const maxStreak = records.reduce((max, r) => Math.max(max, r.streak || 0), 0);

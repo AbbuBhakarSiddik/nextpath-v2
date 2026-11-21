@@ -4,7 +4,7 @@ import { Document, Packer, Paragraph, TextRun } from "docx";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
-import RecentOutput from "../models/RecentOutput.js";
+import { prisma } from "../config/db.js";
 
 dotenv.config();
 
@@ -67,14 +67,18 @@ Return JSON format only:
     const outputText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
     const cleanJson = extractJson(outputText);
 
-    // Save to recent outputs (non-blocking)
-    RecentOutput.create({
-      type: "jobadvisor",
-      userQuery: `${role} | Skills: ${skills || "N/A"}`,
-      outputSummary: `Skills needed: ${(cleanJson.need || []).slice(0, 5).join(", ")}. Courses: ${(cleanJson.courses || []).slice(0, 3).join(", ")}`,
-      fullOutput: cleanJson,
-      metadata: { role },
-    }).catch((err) => console.error("Failed to save recent output:", err));
+    // Save to recent outputs via Prisma (non-blocking)
+    prisma.aiActivity
+      .create({
+        data: {
+          type: "jobadvisor",
+          userQuery: `${role} | Skills: ${skills || "N/A"}`,
+          outputSummary: `Skills needed: ${(cleanJson.need || []).slice(0, 5).join(", ")}. Courses: ${(cleanJson.courses || []).slice(0, 3).join(", ")}`,
+          fullOutput: cleanJson,
+          metadata: { role },
+        },
+      })
+      .catch(() => {});
 
     // Generate DOCX
     const doc = new Document({

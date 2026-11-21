@@ -1,6 +1,5 @@
 // backend/src/config/db.js
 // NextPath.ai — PostgreSQL Database Client (Prisma ORM)
-
 import { PrismaClient } from "@prisma/client";
 
 let prismaInstance = null;
@@ -8,9 +7,7 @@ let isConnected = false;
 
 export function getPrismaClient() {
   if (!process.env.DATABASE_URL) {
-    console.warn(
-      "⚠️ [Database] DATABASE_URL is not set in environment. Set DATABASE_URL to your PostgreSQL connection string."
-    );
+    console.warn("⚠️ [Database] DATABASE_URL is not set in environment.");
     return null;
   }
 
@@ -28,23 +25,22 @@ export function getPrismaClient() {
   return prismaInstance;
 }
 
-export async function connectDatabase() {
-  const client = getPrismaClient();
-  if (!client) return false;
+export const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+});
 
+export async function connectDatabase() {
   try {
-    await client.$connect();
+    await prisma.$connect();
     isConnected = true;
-    console.log("✅ PostgreSQL connected via Prisma");
+    console.log("✅ Supabase PostgreSQL connected via Prisma");
     return true;
   } catch (err) {
-    console.warn(
-      `⚠️ PostgreSQL connection note: ${err.message}. (Ensure PostgreSQL is running or verify DATABASE_URL)`
-    );
+    console.warn(`⚠️ PostgreSQL connection note: ${err.message}`);
     return false;
   }
 }
 
 export const isDbConnected = () => isConnected;
 
-export default getPrismaClient;
+export default prisma;

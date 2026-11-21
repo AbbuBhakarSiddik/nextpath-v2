@@ -1,6 +1,6 @@
 // backend/src/routes/recentRoutes.js
 import express from "express";
-import RecentOutput from "../models/RecentOutput.js";
+import { prisma } from "../config/db.js";
 
 const router = express.Router();
 
@@ -9,11 +9,20 @@ router.get("/", async (req, res) => {
   try {
     const { type, limit = 20 } = req.query;
 
-    const filter = type ? { type } : {};
-    const outputs = await RecentOutput.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
-      .select("type userQuery outputSummary metadata createdAt");
+    const where = type ? { type } : {};
+    const outputs = await prisma.aiActivity.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: parseInt(limit, 10),
+      select: {
+        id: true,
+        type: true,
+        userQuery: true,
+        outputSummary: true,
+        metadata: true,
+        createdAt: true,
+      },
+    });
 
     res.json(outputs);
   } catch (err) {

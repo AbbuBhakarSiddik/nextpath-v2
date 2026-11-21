@@ -1,13 +1,13 @@
 // backend/server.js
 import dotenv from "dotenv";
 dotenv.config();
-import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { connectDatabase } from "./src/config/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -82,15 +82,8 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: err.message || "Internal Server Error" });
 });
 
-// Database Connection (Graceful & Non-Crashing)
-if (process.env.MONGO_URI) {
-  mongoose
-    .connect(process.env.MONGO_URI, { autoIndex: true })
-    .then(() => console.log("✅ MongoDB connected"))
-    .catch((err) => console.warn("⚠️ MongoDB connection warning:", err.message));
-} else {
-  console.log("ℹ️ No MONGO_URI configured; using PostgreSQL/Prisma or offline memory mode.");
-}
+// Connect to Supabase PostgreSQL (Prisma ORM)
+connectDatabase();
 
 // Start server (Only when running standalone, not inside Vercel serverless)
 const PORT = process.env.PORT || 5000;

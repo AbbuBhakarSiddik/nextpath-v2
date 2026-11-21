@@ -1,7 +1,7 @@
 // backend/src/routes/chatRoutes.js
 import express from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import RecentOutput from "../models/RecentOutput.js";
+import { prisma } from "../config/db.js";
 
 const router = express.Router();
 
@@ -137,14 +137,18 @@ router.post("/stream", async (req, res) => {
     sendEvent(res, { done: true });
     res.end();
 
-    // Save to cache and DB non-blocking
+    // Save to cache and Prisma non-blocking
     chatCache.set(cacheKey, { reply: fullReply, timestamp: Date.now() });
-    RecentOutput.create({
-      type: "chat",
-      userQuery: message.substring(0, 200),
-      outputSummary: fullReply.substring(0, 500),
-      fullOutput: { reply: fullReply },
-    }).catch((err) => console.error("Failed to save recent output:", err));
+    prisma.aiActivity
+      .create({
+        data: {
+          type: "chat",
+          userQuery: message.substring(0, 200),
+          outputSummary: fullReply.substring(0, 500),
+          fullOutput: { reply: fullReply },
+        },
+      })
+      .catch(() => {});
 
   } catch (error) {
     console.error("❌ Gemini Streaming Error:", error);
