@@ -100,6 +100,7 @@ Phase 4: Supercharged Feature Upgrades (Sprint 4)
 | 2026-11-21 | Phase 2 | Supabase PostgreSQL Migration | Completely migrated all models and routes to Prisma ORM on Supabase PostgreSQL (`db.vlvmyzswbyioppcacerk.supabase.co`). Synced tables via `prisma db push` and verified connectivity with `npm run db:test`. | **Completed** |
 | 2026-11-21 | Phase 2 | MongoDB Removal | Completely uninstalled and removed MongoDB, `mongoose`, `MONGO_URI`, and legacy Mongoose models from the backend. | **Completed** |
 | 2026-11-21 | Deploy | Unified Vercel Monorepo | Built `vercel.json` and `api/index.js` bridge to deploy both React frontend and Express backend together on a single Vercel project with edge routing. | **Completed** |
+| 2026-11-22 | Deploy | Dynamic Hostname Routing & Manifest Fix | Added bulletproof `getBaseUrl()` to dynamically use relative `/api` on production domains (*.vercel.app), preventing localhost:5000 fallback. Fixed manifest.json icons and meta tags. | **Completed** |
 | Planned | Phase 4 | Career Advisor Chat | Add multi-turn conversation memory, customizable advisor personas, and code copy blocks. | *Next Up* |
 | Planned | Phase 4 | Career Path & Job Advisor | Node-based visual roadmap stages, direct memory buffer/attachment DOCX download avoiding server file overwrite. | *Planned* |
 
