@@ -1,7 +1,7 @@
 // frontend/src/components/Navbar.js
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FiCommand, FiMenu, FiX, FiGithub, FiZap } from "react-icons/fi";
+import { FiMenu, FiX, FiGithub, } from "react-icons/fi";
 import { getEnabledFeatures } from "../config/features";
 
 export default function Navbar({ onOpenCommandPalette }) {
