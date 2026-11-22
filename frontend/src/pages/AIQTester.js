@@ -28,7 +28,7 @@ const DIFFICULTIES = [
   { value: "expert", label: "Expert", range: "99+", color: "#a855f7", mult: "3.0x" },
 ];
 
-const TIMER_SECONDS = 30;
+const TIMER_SECONDS = 120;
 
 export default function AIQTester() {
   // Navigation & Player State

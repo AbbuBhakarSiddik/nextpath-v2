@@ -43,20 +43,7 @@ export default function Navbar({ onOpenCommandPalette }) {
           }}
           onClick={() => setMobileMenuOpen(false)}
         >
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "10px",
-              background: "linear-gradient(135deg, #00FF7F 0%, #008f4c 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 0 15px rgba(0, 255, 127, 0.4)",
-            }}
-          >
-            <FiZap style={{ color: "#080c14", fontSize: "1.2rem", strokeWidth: 3 }} />
-          </div>
+
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span
@@ -69,19 +56,7 @@ export default function Navbar({ onOpenCommandPalette }) {
               >
                 NextPath<span style={{ color: "#00FF7F" }}>.ai</span>
               </span>
-              <span
-                style={{
-                  fontSize: "0.65rem",
-                  fontWeight: 700,
-                  padding: "2px 6px",
-                  borderRadius: "9999px",
-                  backgroundColor: "rgba(0, 255, 127, 0.15)",
-                  color: "#00FF7F",
-                  border: "1px solid rgba(0, 255, 127, 0.3)",
-                }}
-              >
-                v2.0
-              </span>
+
             </div>
           </div>
         </Link>
@@ -133,37 +108,7 @@ export default function Navbar({ onOpenCommandPalette }) {
         {/* Action Controls & Search Pill */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           {/* Command Palette Button */}
-          <button
-            onClick={() => onOpenCommandPalette(true)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "6px 12px",
-              borderRadius: "8px",
-              backgroundColor: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              color: "#94a3b8",
-              fontSize: "0.85rem",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            title="Open Command Palette (Ctrl + K)"
-          >
-            <FiCommand style={{ color: "#00FF7F" }} />
-            <span className="d-none d-md-inline" style={{ fontSize: "0.8rem" }}>Search</span>
-            <kbd
-              style={{
-                fontSize: "0.65rem",
-                padding: "2px 5px",
-                borderRadius: "4px",
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                color: "#cbd5e1",
-              }}
-            >
-              Ctrl K
-            </kbd>
-          </button>
+
 
           {/* GitHub Repo */}
           <a
