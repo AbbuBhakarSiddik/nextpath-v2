@@ -1,65 +1,76 @@
 
-# NextPath AI 🚀
+# 🚀 NextPath AI
 
-### Your AI-Powered Career Intelligence Platform
+### An AI-Powered Career Intelligence Platform
 
-NextPath AI is an open-source AI-powered career intelligence platform designed to help developers explore career opportunities, improve their technical skills, discover learning paths, and connect with the developer community.
+**Build your skills. Discover your path. Shape your future.**
 
-Built with React, Node.js, Express, PostgreSQL, Prisma, and Google Gemini AI.
+NextPath AI is an open-source AI-powered career intelligence platform designed to help developers navigate their professional journey.
 
-**Our mission is simple: Make career growth smarter, more accessible, and community-driven.**
+From personalized career roadmaps and AI-powered guidance to technical skill assessments and developer networking, NextPath AI brings essential career development tools into one platform.
+
+Our mission is to make career growth smarter, more accessible, and community-driven.
 
 ---
 
 ## ✨ Features
 
 ### 🤖 AI Career Assistant
-- AI-powered career guidance and assistance.
-- Interactive AI chat experience.
-- Career-related recommendations powered by Google Gemini.
+- AI-powered career guidance and technical mentorship.
+- Interactive conversations powered by Google Gemini.
+- Multiple AI personas for different perspectives:
+  - Systems Architect
+  - Technical Recruiter
+  - Startup Founder
+  - Developer Mentor
 
-### 🎯 Career Roadmaps
-- Explore strategic career roadmaps.
-- Identify existing and missing skills.
-- Discover relevant learning resources and projects.
+### 🎯 Career Intelligence
+- Generate personalized career roadmaps.
+- Analyze existing skills and identify skill gaps.
+- Discover recommended courses and certifications.
+- Explore practical project ideas for career development.
 
-### 🧠 IQ & Skill Challenges
-- Interactive quizzes and skill assessments.
-- Multiple categories and difficulty levels.
-- Scores, performance tracking, and leaderboard support.
+### 🧠 AI Skill Challenges
+- AI-generated technical and logical questions.
+- Multiple difficulty levels.
+- Coding, logical reasoning, and error-related challenges.
+- Performance tracking and leaderboard functionality.
 
 ### 🌍 Developer Community
-- Developer profiles and professional information.
-- Showcase skills and projects.
-- Connect with other developers.
+- Create and showcase developer profiles.
+- Share professional skills and projects.
+- Discover and search community profiles.
+- Connect with developers and explore opportunities.
 
-### 📰 Tech News
+### 📰 Technology News
 - Discover technology-related news.
-- Stay updated with developments in the tech industry.
+- Search for industry updates.
+- Stay informed about developments in technology.
 
-### 📊 Activity Tracking
-- Access recent AI interactions and activity.
-- Keep track of generated career-related outputs.
+### 📊 AI Activity
+- Store and retrieve recent AI-generated outputs.
+- Explore previous career and learning interactions.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
+| Category | Technology |
 |---|---|
 | Frontend | React.js |
-| UI | Bootstrap, React Bootstrap |
+| UI Framework | Bootstrap, React Bootstrap |
 | Backend | Node.js, Express.js |
 | Database | PostgreSQL |
 | ORM | Prisma |
 | AI Integration | Google Gemini API |
-| Authentication Integration | Google OAuth |
+| Google Integration | Google OAuth libraries |
 | News Integration | NewsAPI |
 | HTTP Client | Axios |
+| Language | JavaScript |
 
 ---
 
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```text
 nextpath-v2/
@@ -69,8 +80,9 @@ nextpath-v2/
 │   │   └── schema.prisma
 │   ├── src/
 │   │   ├── config/
-│   │   ├── routes/
-│   │   └── ...
+│   │   ├── controllers/
+│   │   ├── data/
+│   │   └── routes/
 │   ├── .env.example
 │   ├── package.json
 │   └── server.js
@@ -78,6 +90,9 @@ nextpath-v2/
 ├── frontend/
 │   ├── public/
 │   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── styles/
 │   └── package.json
 │
 ├── run.js
@@ -90,14 +105,13 @@ nextpath-v2/
 
 ## 🚀 Getting Started
 
-Follow these steps to run NextPath AI locally.
+Want to run NextPath AI locally? Follow these steps.
 
 ### Prerequisites
 
 Make sure you have:
 
-- Node.js (LTS recommended)
-- npm
+- Node.js and npm
 - PostgreSQL database
 - Google Gemini API key
 - NewsAPI key
@@ -126,19 +140,19 @@ npm install --prefix frontend
 
 ### 3. Configure environment variables
 
-Create your backend environment file:
+Create your backend environment file.
 
 ```bash
 cp backend/.env.example backend/.env
 ```
 
-On Windows PowerShell:
+For Windows PowerShell:
 
 ```powershell
 Copy-Item backend/.env.example backend/.env
 ```
 
-Configure the following values in `backend/.env`:
+Configure `backend/.env`:
 
 ```env
 PORT=5000
@@ -147,21 +161,21 @@ NODE_ENV=development
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-flash-lite-latest
 
-NEWS_API_KEY=your_news_api_key
+NEWS_API_KEY=your_newsapi_key
 
 DATABASE_URL="your_postgresql_connection_string"
 ```
 
-Obtain your API credentials:
+Get your API keys:
 
-- Gemini: https://aistudio.google.com/
-- NewsAPI: https://newsapi.org/
+- [Google AI Studio](https://aistudio.google.com/)
+- [NewsAPI](https://newsapi.org/)
 
-Never commit your actual API keys or environment files.
+Never commit your actual API keys or `.env` files.
 
 ### 4. Configure the database
 
-Make sure PostgreSQL is running and your `DATABASE_URL` is correct.
+Configure PostgreSQL and provide a valid `DATABASE_URL`.
 
 Generate the Prisma client:
 
@@ -169,7 +183,7 @@ Generate the Prisma client:
 npm run db:generate
 ```
 
-Push the database schema:
+Apply the Prisma schema to your database:
 
 ```bash
 npm run db:push
@@ -183,52 +197,72 @@ From the project root:
 npm run dev
 ```
 
-The development runner starts both services.
+This starts the backend and frontend development servers concurrently.
 
-| Service | Local URL |
+### Local development URLs
+
+| Service | URL |
 |---|---|
 | Frontend | http://localhost:3000 |
 | Backend | http://localhost:5000 |
-| Health Check | http://localhost:5000/api/health |
+| API Health Check | http://localhost:5000/api/health |
 
 ---
 
-## 🧪 Development
+## 💻 Development Commands
 
-Start only the backend:
+Start backend only:
 
 ```bash
 npm run dev:backend
 ```
 
-Start only the frontend:
+Start frontend only:
 
 ```bash
 npm run dev:frontend
 ```
 
-Build the frontend:
+Build frontend:
 
 ```bash
 npm run build
+```
+
+Generate Prisma client:
+
+```bash
+npm run db:generate
 ```
 
 ---
 
 ## 🤝 Contributing
 
-We welcome developers, designers, students, and AI enthusiasts to contribute to NextPath AI!
+NextPath AI is open to contributions from developers around the world!
 
-Whether you're fixing bugs, improving the UI, developing new features, optimizing APIs, or suggesting ideas, your contributions are valuable.
+We believe great software is built through collaboration, experimentation, and shared knowledge.
 
-### How to contribute
+Whether you're a beginner making your first open-source contribution or an experienced developer interested in improving the architecture, you're welcome here.
 
-1. Fork this repository.
+### What can you contribute?
+
+- 🚀 New AI-powered career features.
+- 🧠 Improvements to AI prompts and recommendations.
+- 🎨 Frontend and UI/UX improvements.
+- ⚙️ Backend APIs and architecture improvements.
+- 🗄️ Database optimization and schema improvements.
+- 🐛 Bug fixes and performance improvements.
+- 📚 Documentation and developer experience.
+
+### Contribution workflow
+
+1. Fork the repository.
 2. Clone your fork.
-3. Create a feature branch.
-4. Make your changes.
-5. Test your changes.
-6. Submit a Pull Request.
+3. Create a new feature branch.
+4. Implement and test your changes.
+5. Push your branch.
+6. Open a Pull Request.
 
 Example:
 
@@ -236,61 +270,49 @@ Example:
 git checkout -b feature/your-feature-name
 ```
 
-We are working on detailed contribution guidelines. Please check `CONTRIBUTING.md` before submitting your contribution.
+Please open an issue to discuss substantial changes before implementing them.
+
+Detailed contribution guidelines will be published in `CONTRIBUTING.md`.
 
 ---
 
-## 💡 Ways to Contribute
+## 🗺️ Project Roadmap
 
-- Improve AI career recommendations.
-- Build new AI-powered features.
-- Improve frontend UI/UX.
-- Optimize backend performance.
-- Improve database architecture.
-- Add new career roadmaps.
-- Fix bugs and improve documentation.
-- Improve testing and security.
-
-Look for issues labelled `good first issue` and `help wanted`.
-
----
-
-## 🗺️ Roadmap
-
-Our development roadmap is community-driven.
-
-Planned areas of improvement include:
+Our roadmap will evolve with community feedback and contributions.
 
 - [ ] Improve AI career recommendation quality.
-- [ ] Expand career roadmap library.
+- [ ] Expand career roadmap capabilities.
 - [ ] Improve developer community features.
-- [ ] Expand testing and automated CI.
+- [ ] Expand automated testing.
 - [ ] Improve API documentation.
-- [ ] Enhance application performance.
-- [ ] Welcome and support external contributors.
+- [ ] Strengthen application security.
+- [ ] Improve performance and scalability.
+- [ ] Build a welcoming contributor community.
 
-Suggestions and feature requests are welcome through GitHub Issues.
+Have an idea? Open a GitHub Issue and share it with us!
 
 ---
 
 ## 📜 License
 
-NextPath AI is distributed under the MIT License.
+NextPath AI is licensed under the MIT License.
 
-See the [LICENSE](LICENSE) file for details.
+You are free to use, modify, distribute, and build upon this project under the terms of the license.
+
+See [LICENSE](LICENSE) for details.
 
 ---
 
-## ❤️ Community
+## ❤️ Join the Community
 
-Interested in contributing?
+Help us make career growth accessible to every developer.
 
-- ⭐ Star this repository.
-- 🐛 Report bugs through GitHub Issues.
-- 💡 Suggest new features.
+- ⭐ Star the repository.
+- 🐛 Report bugs.
+- 💡 Share feature ideas.
 - 🔧 Submit Pull Requests.
-- 🌍 Help us improve the platform.
+- 🌍 Help improve the project.
 
 **Built with ❤️ for developers, by developers.**
 
-Let's make career growth open-source.
+Let's build the future of career intelligence together!
